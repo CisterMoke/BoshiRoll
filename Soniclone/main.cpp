@@ -6,7 +6,7 @@
 #include <iostream>
 #include "globals.h"
 #include "utils.h"
-#include "SpinSprite.h"
+#include "BaseSprite.h"
 #include "AnimSprite.h"
 using namespace glob;
 
@@ -37,7 +37,7 @@ SDL_Texture *gTexture = NULL;
 
 SDL_Surface *gBoshiSurfs[ORIENT_TOTAL];
 SDL_Texture *gBoshiTexts[ORIENT_TOTAL];
-SpinSprite *boshiSprite = new SpinSprite();
+BaseSprite *boshiSprite = new BaseSprite();
 AnimSprite *yoshiKart = new AnimSprite();
 bool boshiFlag = false;
 
@@ -108,16 +108,16 @@ bool loadMedia()
 void close()
 {
 	SDL_DestroyTexture(gTexture);
-	gTexture = NULL;
+	gTexture = nullptr;
 	SDL_FreeSurface(gBackImg);
-	gBackImg = NULL;
+	gBackImg = nullptr;
 	SDL_FreeSurface(gSurf);
-	gSurf = NULL;
+	gSurf = nullptr;
 
 	SDL_DestroyRenderer(gRenderer);
 	SDL_DestroyWindow(gWindow);
-	gWindow = NULL;
-	gRenderer = NULL;
+	gWindow = nullptr;
+	gRenderer = nullptr;
 
 	//Quit SDL subsystems
 	IMG_Quit();
@@ -155,16 +155,15 @@ void doAction(SDL_Event event)
 				break;
 
 			case SDLK_DOWN:
-				boshiSprite->revert();
-				boshiSprite->rotate(180);
+				boshiSprite->flip(SDL_FLIP_HORIZONTAL);
 				break;
 
 			case SDLK_LEFT:
-				boshiSprite->rotate(-10);
+				boshiSprite->rotate(30);
 				break;
 
 			case SDLK_RIGHT:
-				boshiSprite->rotate(10);
+				boshiSprite->rotate(-30);
 				break;
 			}
 		}
@@ -205,7 +204,7 @@ int main(int argc, char *argv[])
 		//SDL_RenderCopy(gRenderer, gTexture, NULL, NULL);
 		if (boshiFlag)
 		{
-			boshiSprite->renderAt(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 0.5);
+			boshiSprite->renderAt(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
 			int yw = yoshiKart->getWidth()/2;
 			int yh = yoshiKart->getHeight()/2;
 			yoshiKart->renderAt(yw, yh);

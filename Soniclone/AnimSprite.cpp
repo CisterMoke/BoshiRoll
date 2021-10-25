@@ -53,7 +53,6 @@ void AnimSprite::rewind(int frames) { currFrame = (currFrame - frames) % numFram
 
 void AnimSprite::renderAt(int x, int y)
 {
-	SDL_Rect dest = { x - getWidth() / 2, y - getHeight() / 2, getWidth(), getHeight() };
 	SDL_Rect clip = { frameRects[currFrame][0], frameRects[currFrame][1], frameSize[0], frameSize[1] };
-	SDL_RenderCopy(gRenderer, texture, &clip, &dest);
+	BaseSprite::renderAt(x, y, &clip);
 }

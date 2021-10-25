@@ -1,15 +1,7 @@
 #include "BaseSprite.h"
 using glob::gRenderer;
 
-BaseSprite::BaseSprite()
-{
-	texture = NULL;
-	baseSurf = NULL;
-	w = 0;
-	h = 0;
-	scale_x = 1;
-	scale_y = 1;
-};
+BaseSprite::BaseSprite() = default;
 
 BaseSprite::~BaseSprite()
 {
@@ -45,16 +37,24 @@ int BaseSprite::getHeight() { return scale_y * h; }
 void BaseSprite::reset()
 {
 	clearMem();
-	texture = NULL;
-	baseSurf = NULL;
+	texture = nullptr;
+	baseSurf = nullptr;
 	w = 0;
 	h = 0;
+	theta = 0;
+	scale_x = 1;
+	scale_y = 1;
+	_flip = SDL_FLIP_NONE;
 }
 
 void BaseSprite::revert()
 {
 	w = baseSurf->w;
 	h = baseSurf->h;
+	theta = 0;
+	scale_x = 1;
+	scale_y = 1;
+	_flip = SDL_FLIP_NONE;
 
 	SDL_DestroyTexture(texture);
 	texture = SDL_CreateTextureFromSurface(gRenderer, baseSurf);
@@ -68,14 +68,23 @@ void BaseSprite::zoom(double rx, double ry)
 	scale_y = ry;
 }
 
-void BaseSprite::renderAt(int x, int y)
+void BaseSprite::flip(SDL_RendererFlip f) { _flip = f; }
+void BaseSprite::rotate(double angle) { theta -= fmod(angle, 360); }
+
+void BaseSprite::renderAt(int x, int y, SDL_Rect *clip)
 {
 	SDL_Rect dest = { x - getWidth() / 2, y - getHeight() / 2, getWidth(), getHeight() };
-	SDL_RenderCopy(gRenderer, texture, NULL, &dest);
+	_render(texture, clip, &dest, theta, NULL);
 }
 
 void BaseSprite::clearMem()
 {
 	SDL_FreeSurface(baseSurf);
 	SDL_DestroyTexture(texture);
+}
+
+
+void BaseSprite::_render(SDL_Texture* tex, SDL_Rect *src, SDL_Rect *dst, double angle, SDL_Point *center)
+{
+	SDL_RenderCopyEx(gRenderer, tex, src, dst, angle, center, _flip);
 }
