@@ -19,9 +19,11 @@ public:
 	void revert();
 	void zoom(double rx, double ry);
 	void flip(SDL_RendererFlip f);
+	void toggleFlip(SDL_RendererFlip f);
 	void rotate(double angle);
 	void setWidth(int width);
 	void setHeight(int height);
+	void setTheta(double angle);
 	void renderAt(int x, int y, SDL_Rect *clip = NULL);
 
 protected:
@@ -30,9 +32,9 @@ protected:
 
 	int w = 0;
 	int h = 0;
-	double theta = 0;
-	double scale_x = 1;
-	double scale_y = 1;
+	double theta = 0.0;
+	double scale_x = 1.0;
+	double scale_y = 1.0;
 	SDL_RendererFlip _flip = SDL_FLIP_NONE;
 
 	SDL_Texture *texture = nullptr;

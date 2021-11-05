@@ -1,13 +1,15 @@
 //Using SDL and standard IO
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
-#include<SDL_image.h>
-#include <SDL2_rotozoom.h>
+#include <SDL_image.h>
+#include <SDL_ttf.h>
 #include <iostream>
+#include <sstream>
 #include "globals.h"
 #include "utils.h"
 #include "BaseSprite.h"
 #include "AnimSprite.h"
+#include "FontSprite.h"
 using namespace glob;
 
 
@@ -26,21 +28,25 @@ bool loadMedia();
 void close();
 
 //Main surfaces and textures
-SDL_Window *glob::gWindow = NULL;
-SDL_Renderer *glob::gRenderer = NULL;
-SDL_Surface *glob::gScreen = NULL;
-SDL_Surface *gBackImg = NULL;
-SDL_Texture *gBackText = NULL;
+SDL_Window *glob::gWindow = nullptr;
+SDL_Renderer *glob::gRenderer = nullptr;
+SDL_Surface *glob::gScreen = nullptr;
+TTF_Font *glob::gFont = nullptr;
+SDL_Surface *gBackImg = nullptr;
+SDL_Texture *gBackText = nullptr;
 
-SDL_Surface *gSurf = NULL;
-SDL_Texture *gTexture = NULL;
+SDL_Surface *gSurf = nullptr;
+SDL_Texture *gTexture = nullptr;
 
 SDL_Surface *gBoshiSurfs[ORIENT_TOTAL];
 SDL_Texture *gBoshiTexts[ORIENT_TOTAL];
 BaseSprite *boshiSprite = new BaseSprite();
 AnimSprite *yoshiKart = new AnimSprite();
-bool boshiFlag = false;
+FontSprite *titleFont = new FontSprite();
 
+bool boshiFlag = false;
+std::stringstream boshiText;
+int boshiSplit = 0;
 
 bool init()
 {
@@ -75,6 +81,12 @@ bool init()
 		std::cout << "SDL_image could not initialize! SDL_image Error: " << IMG_GetError() << "\n";
 		return false;
 	}
+	// Init TTF font loading
+	if (TTF_Init() == -1)
+	{
+		printf("TTF_Init: %s\n", TTF_GetError());
+		return false;
+	}
 
 	gScreen = SDL_GetWindowSurface(gWindow);
 	SDL_FillRect(gScreen, NULL, SDL_MapRGB(gScreen->format, 0xFF, 0xFF, 0xFF));
@@ -94,6 +106,7 @@ bool loadMedia()
 	}
 
 	gBackText = SDL_CreateTextureFromSurface(gRenderer, gBackImg);
+	SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 0 );
 
 	SDL_Surface *boshiSurf = loadSurface(BOSHI_IMG, SDL_PIXELFORMAT_RGBA8888);
 	if (boshiSurf == NULL)
@@ -101,9 +114,17 @@ bool loadMedia()
 		return false;
 	}
 
+	glob::gFont = TTF_OpenFont(COMIC_FONT_BOLD.c_str(), 54);
+	if (glob::gFont == NULL)
+	{
+		std::cout << "Unable to load font " << COMIC_FONT_BOLD << std::endl;
+		return false;
+	}
+	titleFont->setFont(glob::gFont);
+	titleFont->setColor({ 22, 26, 255 });
+	titleFont->setText("BOSHI SPIN!!!");
 	return true;
 }
-
 
 void close()
 {
@@ -123,6 +144,10 @@ void close()
 	IMG_Quit();
 	SDL_Quit();
 }
+
+void tic(unsigned int *t) { *t = SDL_GetTicks(); }
+
+unsigned int toc(unsigned int *t) { return SDL_GetTicks() - *t; }
 
 void doAction(SDL_Event event)
 {
@@ -155,7 +180,7 @@ void doAction(SDL_Event event)
 				break;
 
 			case SDLK_DOWN:
-				boshiSprite->flip(SDL_FLIP_HORIZONTAL);
+				boshiSprite->toggleFlip(SDL_FLIP_HORIZONTAL);
 				break;
 
 			case SDLK_LEFT:
@@ -170,10 +195,38 @@ void doAction(SDL_Event event)
 	}
 }
 
+void render()
+{
+	SDL_RenderClear(gRenderer);
+	boshiText.str("");
+	boshiText << TITLE_TEXT.substr(boshiSplit) << TITLE_TEXT.substr(0, boshiSplit);
+	titleFont->setText(boshiText.str());
+	titleFont->renderAt(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+
+	if (boshiFlag)
+	{
+		boshiSprite->renderAt(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+		int yw = yoshiKart->getWidth() / 2;
+		int yh = yoshiKart->getHeight() / 2;
+		yoshiKart->renderAt(yw, yh);
+		yoshiKart->renderAt(yw, SCREEN_HEIGHT - yh);
+		yoshiKart->toggleFlip(SDL_FLIP_HORIZONTAL);
+		yoshiKart->renderAt(SCREEN_WIDTH - yw, yh);
+		yoshiKart->renderAt(SCREEN_WIDTH - yw, SCREEN_HEIGHT - yh);
+		yoshiKart->toggleFlip(SDL_FLIP_HORIZONTAL);
+		yoshiKart->sync(true);
+	}
+	SDL_RenderPresent(gRenderer);
+}
+
 int main(int argc, char *argv[])
 {
 	bool quit = false;
 	SDL_Event e;
+	unsigned int *frameTimer = new unsigned int(0);
+	unsigned int *boshiTimer = new unsigned int(0);
+	tic(frameTimer);
+	tic(boshiTimer);
 
 	SDL_SetMainReady();
 	init();
@@ -183,13 +236,8 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
-	int animLag = 10;
-	int animCount = 0;
 	while (!quit)
 	{
-		animCount = (animCount + 1) % animLag;
-		SDL_RenderClear(gRenderer);
-		SDL_RenderCopy(gRenderer, gBackText, NULL, NULL);
 		while (SDL_PollEvent(&e) != 0)
 		{
 			if (e.type == SDL_QUIT)
@@ -201,23 +249,16 @@ int main(int argc, char *argv[])
 				doAction(e);
 			}
 		}
-		//SDL_RenderCopy(gRenderer, gTexture, NULL, NULL);
-		if (boshiFlag)
+		if (toc(boshiTimer) / 1000.0 > 5.0 / FPS)
 		{
-			boshiSprite->renderAt(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
-			int yw = yoshiKart->getWidth()/2;
-			int yh = yoshiKart->getHeight()/2;
-			yoshiKart->renderAt(yw, yh);
-			yoshiKart->renderAt(yw, SCREEN_HEIGHT - yh);
-			yoshiKart->renderAt(SCREEN_WIDTH - yw, yh);
-			yoshiKart->renderAt(SCREEN_WIDTH - yw, SCREEN_HEIGHT - yh);
-			if (!animCount)
-			{
-				yoshiKart->advance();
-			}
+			tic(boshiTimer);
+			boshiSplit = (boshiSplit + 1) % TITLE_TEXT.length();
 		}
-		SDL_RenderPresent(gRenderer);
-		//SDL_UpdateWindowSurface(gWindow);
+		if (toc(frameTimer) / 1000.0 > 1.0/FPS)
+		{
+			tic(frameTimer);
+			render();
+		}
 	}
 
 	delete boshiSprite;

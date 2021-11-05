@@ -41,9 +41,9 @@ void BaseSprite::reset()
 	baseSurf = nullptr;
 	w = 0;
 	h = 0;
-	theta = 0;
-	scale_x = 1;
-	scale_y = 1;
+	theta = 0.0;
+	scale_x = 1.0;
+	scale_y = 1.0;
 	_flip = SDL_FLIP_NONE;
 }
 
@@ -51,9 +51,9 @@ void BaseSprite::revert()
 {
 	w = baseSurf->w;
 	h = baseSurf->h;
-	theta = 0;
-	scale_x = 1;
-	scale_y = 1;
+	theta = 0.0;
+	scale_x = 1.0;
+	scale_y = 1.0;
 	_flip = SDL_FLIP_NONE;
 
 	SDL_DestroyTexture(texture);
@@ -62,6 +62,7 @@ void BaseSprite::revert()
 
 void BaseSprite::setWidth(int width) { w = width; }
 void BaseSprite::setHeight(int height) { h = height; }
+void BaseSprite::setTheta(double angle) { theta = angle; }
 void BaseSprite::zoom(double rx, double ry)
 {
 	scale_x  = rx;
@@ -69,6 +70,7 @@ void BaseSprite::zoom(double rx, double ry)
 }
 
 void BaseSprite::flip(SDL_RendererFlip f) { _flip = f; }
+void BaseSprite::toggleFlip(SDL_RendererFlip f) { _flip =(SDL_RendererFlip)(_flip ^ f); }
 void BaseSprite::rotate(double angle) { theta -= fmod(angle, 360); }
 
 void BaseSprite::renderAt(int x, int y, SDL_Rect *clip)

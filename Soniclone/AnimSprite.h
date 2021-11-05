@@ -17,14 +17,17 @@ public:
 	void reset();
 
 	void setFrame(int frameNum);
+	void setDelay(int delay);
 	void advance(int frames = 1);
 	void rewind(int frames = 1);
+	void sync(bool reverse = false);
 	void renderAt(int x, int y);
 
 private:
-	int numFrames;
-	int currFrame;
-	array<int, 2> frameSize;
+	int numFrames = 0;
+	int currFrame = 0;
+	int animDelay = 1000 / glob::FPS;
+	array<int, 2> frameSize = { 0, 0 };
 	vector<array<int,2>> frameRects;
 	bool loadFromFile(std::string path, int mode);
 };
