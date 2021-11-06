@@ -10,6 +10,7 @@
 #include "BaseSprite.h"
 #include "AnimSprite.h"
 #include "FontSprite.h"
+#include "Colliders.h"
 using namespace glob;
 
 
@@ -43,6 +44,11 @@ SDL_Texture *gBoshiTexts[ORIENT_TOTAL];
 BaseSprite *boshiSprite = new BaseSprite();
 AnimSprite *yoshiKart = new AnimSprite();
 FontSprite *titleFont = new FontSprite();
+
+SDL_Color collor = { 180, 0, 180 };
+LineCollider line = LineCollider(new Vec2(0.0f, SCREEN_HEIGHT), new Vec2(SCREEN_WIDTH, SCREEN_HEIGHT/2));
+CircleCollider circ = CircleCollider();
+RectCollider rect = RectCollider();
 
 bool boshiFlag = false;
 std::stringstream boshiText;
@@ -123,6 +129,14 @@ bool loadMedia()
 	titleFont->setFont(glob::gFont);
 	titleFont->setColor({ 22, 26, 255 });
 	titleFont->setText("BOSHI SPIN!!!");
+
+	*circ.pos = Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+	circ.r = boshiSprite->getWidth()/2;
+
+	*rect.pos = Vec2(0.0f, 0.0f);
+	rect.w = yoshiKart->getWidth();
+	rect.h = yoshiKart->getHeight();
+
 	return true;
 }
 
@@ -160,7 +174,6 @@ void doAction(SDL_Event event)
 			if (boshiFlag)
 			{ 
 				boshiSprite->revert();
-				//boshiSprite->zoom(0.3, 0.3);
 				yoshiKart->setFrame(0);
 			}
 			break;
@@ -216,6 +229,10 @@ void render()
 		yoshiKart->toggleFlip(SDL_FLIP_HORIZONTAL);
 		yoshiKart->sync(true);
 	}
+	debug::drawCollider(line, collor);
+	debug::drawCollider(circ, collor);
+	debug::drawCollider(rect, collor);
+	SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
 	SDL_RenderPresent(gRenderer);
 }
 
