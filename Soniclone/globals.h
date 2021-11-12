@@ -23,6 +23,7 @@ namespace glob
 
 	//Timers
 	const int FPS = 60;
+	const int GAMETICKS = 120;
 
 	//SDL stuff
 	extern SDL_Window *gWindow;

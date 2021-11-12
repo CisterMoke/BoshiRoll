@@ -3,7 +3,7 @@
 struct CircleCollider
 {
 	Vec2 *pos = new Vec2(0.0f, 0.0f);
-	float r;
+	float r = 1.0f;
 
 	CircleCollider();
 	CircleCollider(Vec2 *p, float radius);

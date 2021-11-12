@@ -68,3 +68,8 @@ void AnimSprite::renderAt(int x, int y)
 	SDL_Rect clip = { frameRects[currFrame][0], frameRects[currFrame][1], frameSize[0], frameSize[1] };
 	BaseSprite::renderAt(x, y, &clip);
 }
+
+void AnimSprite::renderAt(Vec2 const &pos)
+{
+	renderAt(pos.x, pos.y);
+}

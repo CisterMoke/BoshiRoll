@@ -3,6 +3,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
+#include <memory>
 #include <iostream>
 #include <sstream>
 #include "globals.h"
@@ -11,6 +12,8 @@
 #include "AnimSprite.h"
 #include "FontSprite.h"
 #include "Colliders.h"
+#include "Entity.h"
+#include "Level.h"
 using namespace glob;
 
 
@@ -41,13 +44,14 @@ SDL_Texture *gTexture = nullptr;
 
 SDL_Surface *gBoshiSurfs[ORIENT_TOTAL];
 SDL_Texture *gBoshiTexts[ORIENT_TOTAL];
-BaseSprite *boshiSprite = new BaseSprite();
+//BaseSprite *boshiSprite = new BaseSprite();
 AnimSprite *yoshiKart = new AnimSprite();
 FontSprite *titleFont = new FontSprite();
+Entity *Boshi;
 
 SDL_Color collor = { 180, 0, 180 };
-LineCollider line = LineCollider(new Vec2(0.0f, SCREEN_HEIGHT), new Vec2(SCREEN_WIDTH, SCREEN_HEIGHT/2));
-CircleCollider circ = CircleCollider();
+Level mainLvl = Level();
+std::shared_ptr<LineCollider> line; 
 RectCollider rect = RectCollider();
 
 bool boshiFlag = false;
@@ -97,12 +101,18 @@ bool init()
 	gScreen = SDL_GetWindowSurface(gWindow);
 	SDL_FillRect(gScreen, NULL, SDL_MapRGB(gScreen->format, 0xFF, 0xFF, 0xFF));
 	SDL_UpdateWindowSurface(gWindow);
+	line = std::shared_ptr<LineCollider>(new LineCollider(new Vec2(0.0f, SCREEN_HEIGHT), new Vec2(SCREEN_WIDTH, SCREEN_HEIGHT / 2)));
+	mainLvl.spawn = Vec2(0.0f, SCREEN_HEIGHT / 2);
+	mainLvl.colliders.push_back(line);
 	return true;
 }
 
 bool loadMedia()
 {
-	boshiSprite->loadFromFile(BOSHI_IMG_BMP, 0x3);
+	Boshi = new Entity(BOSHI_IMG_BMP, 0.3, 0x03);
+	*Boshi->pos = mainLvl.spawn;
+	//boshiSprite->loadFromFile(BOSHI_IMG_BMP, 0x3);
+	//boshiSprite->zoom(0.3, 0.3);
 	yoshiKart->loadFromFile(YOSHI_KART, { 32, 32 }, 0x03);
 	yoshiKart->zoom(3, 3);
 	gBackImg = loadSurface(BACKGROUND_IMG);
@@ -129,9 +139,6 @@ bool loadMedia()
 	titleFont->setFont(glob::gFont);
 	titleFont->setColor({ 22, 26, 255 });
 	titleFont->setText("BOSHI SPIN!!!");
-
-	*circ.pos = Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
-	circ.r = boshiSprite->getWidth()/2;
 
 	*rect.pos = Vec2(0.0f, 0.0f);
 	rect.w = yoshiKart->getWidth();
@@ -163,7 +170,7 @@ void tic(unsigned int *t) { *t = SDL_GetTicks(); }
 
 unsigned int toc(unsigned int *t) { return SDL_GetTicks() - *t; }
 
-void doAction(SDL_Event event)
+void doAction(SDL_Event &event)
 {
 	if (event.type == SDL_KEYDOWN)
 	{
@@ -173,7 +180,8 @@ void doAction(SDL_Event event)
 			boshiFlag = !boshiFlag;
 			if (boshiFlag)
 			{ 
-				boshiSprite->revert();
+				//boshiSprite->revert();
+				//boshiSprite->zoom(0.3, 0.3);
 				yoshiKart->setFrame(0);
 			}
 			break;
@@ -189,19 +197,20 @@ void doAction(SDL_Event event)
 			switch (event.key.keysym.sym)
 			{
 			case SDLK_UP:
-				boshiSprite->revert();
+				//boshiSprite->revert();
+				//boshiSprite->zoom(0.3, 0.3);
 				break;
 
 			case SDLK_DOWN:
-				boshiSprite->toggleFlip(SDL_FLIP_HORIZONTAL);
+				//boshiSprite->toggleFlip(SDL_FLIP_HORIZONTAL);
 				break;
 
 			case SDLK_LEFT:
-				boshiSprite->rotate(30);
+				//boshiSprite->rotate(30);
 				break;
 
 			case SDLK_RIGHT:
-				boshiSprite->rotate(-30);
+				//boshiSprite->rotate(-30);
 				break;
 			}
 		}
@@ -218,7 +227,8 @@ void render()
 
 	if (boshiFlag)
 	{
-		boshiSprite->renderAt(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+		//boshiSprite->renderAt(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+		Boshi->render(gRenderer);
 		int yw = yoshiKart->getWidth() / 2;
 		int yh = yoshiKart->getHeight() / 2;
 		yoshiKart->renderAt(yw, yh);
@@ -229,9 +239,9 @@ void render()
 		yoshiKart->toggleFlip(SDL_FLIP_HORIZONTAL);
 		yoshiKart->sync(true);
 	}
-	debug::drawCollider(line, collor);
-	debug::drawCollider(circ, collor);
+	debug::drawCollider(*line, collor);
 	debug::drawCollider(rect, collor);
+	debug::drawCollider(*Boshi->collider, collor);
 	SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
 	SDL_RenderPresent(gRenderer);
 }
@@ -240,9 +250,11 @@ int main(int argc, char *argv[])
 {
 	bool quit = false;
 	SDL_Event e;
-	unsigned int *frameTimer = new unsigned int(0);
+	unsigned int *renderTimer = new unsigned int(0);
+	unsigned int *gameTimer = new unsigned int(0);
 	unsigned int *boshiTimer = new unsigned int(0);
-	tic(frameTimer);
+	tic(renderTimer);
+	tic(gameTimer);
 	tic(boshiTimer);
 
 	SDL_SetMainReady();
@@ -260,9 +272,11 @@ int main(int argc, char *argv[])
 			if (e.type == SDL_QUIT)
 			{
 				quit = true;
+				break;
 			}
 			else 
 			{
+				Boshi->doAction(e);
 				doAction(e);
 			}
 		}
@@ -271,14 +285,19 @@ int main(int argc, char *argv[])
 			tic(boshiTimer);
 			boshiSplit = (boshiSplit + 1) % TITLE_TEXT.length();
 		}
-		if (toc(frameTimer) / 1000.0 > 1.0/FPS)
+		if (toc(renderTimer) / 1000.0 > 1.0/FPS)
 		{
-			tic(frameTimer);
+			tic(renderTimer);
 			render();
+		}
+		if (toc(gameTimer) / 1000.0 > 1.0 / GAMETICKS)
+		{
+			tic(gameTimer);
+			Boshi->update();
 		}
 	}
 
-	delete boshiSprite;
+	//delete boshiSprite;
 
 	close();
 	return 0;

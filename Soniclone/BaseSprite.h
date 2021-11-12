@@ -3,9 +3,11 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include "utils.h"
+#include "Vec2.h"
 
 class BaseSprite
 {
+	friend class Entity;
 public:
 	BaseSprite();
 	~BaseSprite();
@@ -17,24 +19,25 @@ public:
 
 	virtual void reset();
 	void revert();
-	void zoom(double rx, double ry);
+	void zoom(float rx, float ry);
 	void flip(SDL_RendererFlip f);
 	void toggleFlip(SDL_RendererFlip f);
-	void rotate(double angle);
+	void rotate(float angle);
 	void setWidth(int width);
 	void setHeight(int height);
-	void setTheta(double angle);
+	void setTheta(float angle);
 	void renderAt(int x, int y, SDL_Rect *clip = NULL);
+	void renderAt(Vec2 const &pos, SDL_Rect *clip = NULL);
 
 protected:
 	void clearMem();
-	void _render(SDL_Texture *tex, SDL_Rect *src = NULL, SDL_Rect *dst = NULL, double angle = 0, SDL_Point *center = NULL);
+	void _render(SDL_Texture *tex, SDL_Rect *src = NULL, SDL_Rect *dst = NULL, float angle = 0, SDL_Point *center = NULL);
 
 	int w = 0;
 	int h = 0;
-	double theta = 0.0;
-	double scale_x = 1.0;
-	double scale_y = 1.0;
+	float theta = 0.0;
+	float scale_x = 1.0;
+	float scale_y = 1.0;
 	SDL_RendererFlip _flip = SDL_FLIP_NONE;
 
 	SDL_Texture *texture = nullptr;

@@ -22,6 +22,7 @@ public:
 	void rewind(int frames = 1);
 	void sync(bool reverse = false);
 	void renderAt(int x, int y);
+	void renderAt(Vec2 const &pos);
 
 private:
 	int numFrames = 0;

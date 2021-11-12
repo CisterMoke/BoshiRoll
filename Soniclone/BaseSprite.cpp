@@ -62,8 +62,8 @@ void BaseSprite::revert()
 
 void BaseSprite::setWidth(int width) { w = width; }
 void BaseSprite::setHeight(int height) { h = height; }
-void BaseSprite::setTheta(double angle) { theta = angle; }
-void BaseSprite::zoom(double rx, double ry)
+void BaseSprite::setTheta(float angle) { theta = angle; }
+void BaseSprite::zoom(float rx, float ry)
 {
 	scale_x  = rx;
 	scale_y = ry;
@@ -71,12 +71,16 @@ void BaseSprite::zoom(double rx, double ry)
 
 void BaseSprite::flip(SDL_RendererFlip f) { _flip = f; }
 void BaseSprite::toggleFlip(SDL_RendererFlip f) { _flip =(SDL_RendererFlip)(_flip ^ f); }
-void BaseSprite::rotate(double angle) { theta -= fmod(angle, 360); }
+void BaseSprite::rotate(float angle) { theta -= fmodf(angle, 360); }
 
 void BaseSprite::renderAt(int x, int y, SDL_Rect *clip)
 {
 	SDL_Rect dest = { x - getWidth() / 2, y - getHeight() / 2, getWidth(), getHeight() };
 	_render(texture, clip, &dest, theta, NULL);
+}
+void BaseSprite::renderAt(Vec2 const &pos, SDL_Rect *clip)
+{
+	renderAt(pos.x, pos.y, clip);
 }
 
 void BaseSprite::clearMem()
@@ -86,7 +90,7 @@ void BaseSprite::clearMem()
 }
 
 
-void BaseSprite::_render(SDL_Texture* tex, SDL_Rect *src, SDL_Rect *dst, double angle, SDL_Point *center)
+void BaseSprite::_render(SDL_Texture* tex, SDL_Rect *src, SDL_Rect *dst, float angle, SDL_Point *center)
 {
 	SDL_RenderCopyEx(gRenderer, tex, src, dst, angle, center, _flip);
 }
