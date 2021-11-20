@@ -15,7 +15,7 @@ float Vec2::cross(const Vec2 &v) const
 
 float Vec2::dist(const Vec2 &v) const
 {
-	return sqrtf(pow(x - v.x, 2) - pow(y - v.y, 2));
+	return sqrtf(pow(x - v.x, 2) + pow(y - v.y, 2));
 }
 
 float Vec2::norm() const { return sqrtf(x * x + y * y); }

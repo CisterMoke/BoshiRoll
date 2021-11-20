@@ -14,6 +14,7 @@
 #include "Colliders.h"
 #include "Entity.h"
 #include "Level.h"
+#include "Game.h"
 using namespace glob;
 
 
@@ -44,15 +45,15 @@ SDL_Texture *gTexture = nullptr;
 
 SDL_Surface *gBoshiSurfs[ORIENT_TOTAL];
 SDL_Texture *gBoshiTexts[ORIENT_TOTAL];
-//BaseSprite *boshiSprite = new BaseSprite();
 AnimSprite *yoshiKart = new AnimSprite();
 FontSprite *titleFont = new FontSprite();
-Entity *Boshi;
 
+std::shared_ptr<Entity> Boshi;
+std::shared_ptr<Level> mainLvl;
+Game game;
+std::shared_ptr<LineCollider> line;
+std::shared_ptr<RectCollider> rect;
 SDL_Color collor = { 180, 0, 180 };
-Level mainLvl = Level();
-std::shared_ptr<LineCollider> line; 
-RectCollider rect = RectCollider();
 
 bool boshiFlag = false;
 std::stringstream boshiText;
@@ -101,18 +102,11 @@ bool init()
 	gScreen = SDL_GetWindowSurface(gWindow);
 	SDL_FillRect(gScreen, NULL, SDL_MapRGB(gScreen->format, 0xFF, 0xFF, 0xFF));
 	SDL_UpdateWindowSurface(gWindow);
-	line = std::shared_ptr<LineCollider>(new LineCollider(new Vec2(0.0f, SCREEN_HEIGHT), new Vec2(SCREEN_WIDTH, SCREEN_HEIGHT / 2)));
-	mainLvl.spawn = Vec2(0.0f, SCREEN_HEIGHT / 2);
-	mainLvl.colliders.push_back(line);
 	return true;
 }
 
 bool loadMedia()
 {
-	Boshi = new Entity(BOSHI_IMG_BMP, 0.3, 0x03);
-	*Boshi->pos = mainLvl.spawn;
-	//boshiSprite->loadFromFile(BOSHI_IMG_BMP, 0x3);
-	//boshiSprite->zoom(0.3, 0.3);
 	yoshiKart->loadFromFile(YOSHI_KART, { 32, 32 }, 0x03);
 	yoshiKart->zoom(3, 3);
 	gBackImg = loadSurface(BACKGROUND_IMG);
@@ -140,11 +134,21 @@ bool loadMedia()
 	titleFont->setColor({ 22, 26, 255 });
 	titleFont->setText("BOSHI SPIN!!!");
 
-	*rect.pos = Vec2(0.0f, 0.0f);
-	rect.w = yoshiKart->getWidth();
-	rect.h = yoshiKart->getHeight();
 
 	return true;
+}
+
+void loadGame()
+{
+	mainLvl = std::make_shared<Level>();
+	rect = std::make_shared<RectCollider>(new Vec2(0.0f, 0.0f), yoshiKart->getWidth(), yoshiKart->getHeight());
+	line = std::make_shared<LineCollider>(new Vec2(0.0f, SCREEN_HEIGHT), new Vec2(SCREEN_WIDTH, SCREEN_HEIGHT / 2));
+	mainLvl->spawn = Vec2(0.0f, SCREEN_HEIGHT / 2);
+	mainLvl->colliders.push_back(line);
+	mainLvl->colliders.push_back(rect);
+	Boshi = std::make_shared<Entity>(BOSHI_IMG_BMP, 0.3, 0x03);
+	*Boshi->pos = mainLvl->spawn;
+	game = Game(Boshi, mainLvl);
 }
 
 void close()
@@ -180,8 +184,6 @@ void doAction(SDL_Event &event)
 			boshiFlag = !boshiFlag;
 			if (boshiFlag)
 			{ 
-				//boshiSprite->revert();
-				//boshiSprite->zoom(0.3, 0.3);
 				yoshiKart->setFrame(0);
 			}
 			break;
@@ -190,27 +192,26 @@ void doAction(SDL_Event &event)
 			SDL_Event e;
 			e.type = SDL_QUIT;
 			SDL_PushEvent(&e);
+
+		case SDLK_r:
+			*Boshi->pos = Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
 		}
 
 		if (boshiFlag)
 		{
+			Boshi->doAction(event);
 			switch (event.key.keysym.sym)
 			{
 			case SDLK_UP:
-				//boshiSprite->revert();
-				//boshiSprite->zoom(0.3, 0.3);
 				break;
 
 			case SDLK_DOWN:
-				//boshiSprite->toggleFlip(SDL_FLIP_HORIZONTAL);
 				break;
 
 			case SDLK_LEFT:
-				//boshiSprite->rotate(30);
 				break;
 
 			case SDLK_RIGHT:
-				//boshiSprite->rotate(-30);
 				break;
 			}
 		}
@@ -227,7 +228,6 @@ void render()
 
 	if (boshiFlag)
 	{
-		//boshiSprite->renderAt(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
 		Boshi->render(gRenderer);
 		int yw = yoshiKart->getWidth() / 2;
 		int yh = yoshiKart->getHeight() / 2;
@@ -238,10 +238,10 @@ void render()
 		yoshiKart->renderAt(SCREEN_WIDTH - yw, SCREEN_HEIGHT - yh);
 		yoshiKart->toggleFlip(SDL_FLIP_HORIZONTAL);
 		yoshiKart->sync(true);
+		debug::drawCollider(*line, collor);
+		debug::drawCollider(*rect, collor);
+		debug::drawCollider(*Boshi->collider, collor);
 	}
-	debug::drawCollider(*line, collor);
-	debug::drawCollider(rect, collor);
-	debug::drawCollider(*Boshi->collider, collor);
 	SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
 	SDL_RenderPresent(gRenderer);
 }
@@ -264,7 +264,7 @@ int main(int argc, char *argv[])
 		std::cout << "Failed to load media!\n";
 		return 0;
 	}
-
+	loadGame();
 	while (!quit)
 	{
 		while (SDL_PollEvent(&e) != 0)
@@ -276,7 +276,6 @@ int main(int argc, char *argv[])
 			}
 			else 
 			{
-				Boshi->doAction(e);
 				doAction(e);
 			}
 		}
@@ -293,11 +292,10 @@ int main(int argc, char *argv[])
 		if (toc(gameTimer) / 1000.0 > 1.0 / GAMETICKS)
 		{
 			tic(gameTimer);
-			Boshi->update();
+			game.tick();
 		}
 	}
 
-	//delete boshiSprite;
 
 	close();
 	return 0;

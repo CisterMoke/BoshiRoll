@@ -17,9 +17,11 @@ Entity::~Entity()
 	delete pos, vel, t_force, sprite, collider;
 }
 
-void Entity::move(Vec2 const &v) { *pos += v; }
+void Entity::teleport(Vec2 const &v) { *pos += v; }
+void Entity::push(Vec2 const &f) { *t_force += f; }
 void Entity::rotate(float angle)
 { *theta = fmodf(fmodf(*theta + angle, 360) + 360,  360); }
+void Entity::spin(float alpha) { r_force += alpha; }
 void Entity::update()
 {
 	applyTFriction();

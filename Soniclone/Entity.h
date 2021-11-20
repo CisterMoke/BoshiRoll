@@ -4,7 +4,7 @@
 #include <math.h>
 #include "Vec2.h"
 #include "BaseSprite.h"
-#include "CircleCollider.h"
+#include "Colliders.h"
 
 class Entity
 {
@@ -24,8 +24,10 @@ public:
 
 	~Entity();
 
-	void move(Vec2 const &v);
+	void teleport(Vec2 const &v);
+	void push(Vec2 const &f);
 	void rotate(float angle);
+	void spin(float alpha);
 	void update();
 	void render(SDL_Renderer *renderer, Vec2 const &offset = Vec2(0.0f, 0.0f));
 	void doAction(SDL_Event &event);
