@@ -2,7 +2,7 @@
 #include <string>
 #include <SDL.h>
 #include <SDL_ttf.h>
-
+#define BREAKPOINT __nop()
 namespace glob
 {
 	//Screen dimension constants

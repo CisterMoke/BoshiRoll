@@ -43,16 +43,3 @@ SDL_Texture *loadTexture(std::string path, SDL_PixelFormatEnum pixelFormat)
 	SDL_FreeSurface(loadedSurface);
 	return newTexture;
 }
-
-void debug::drawCollider(CircleCollider const &c, SDL_Color const &color)
-{
-	circleRGBA(glob::gRenderer, c.pos->x, c.pos->y, c.r, color.r, color.g, color.b, 255);
-}
-void debug::drawCollider(RectCollider const &r, SDL_Color const &color)
-{
-	rectangleRGBA(glob::gRenderer, r.pos->x, r.pos->y, r.pos->x + r.w, r.pos->y + r.h, color.r, color.g, color.b, 255);
-}
-void debug::drawCollider(LineCollider const &l, SDL_Color const &color)
-{
-	lineRGBA(glob::gRenderer, l.start->x, l.start->y, l.stop->x, l.stop->y, color.r, color.g, color.b, 255);
-}

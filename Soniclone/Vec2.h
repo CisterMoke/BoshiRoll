@@ -9,6 +9,7 @@ struct Vec2
 
 	float dot(const Vec2 &v) const;
 	float cross(const Vec2 &v) const;
+	Vec2 cross(float z) const;
 	float dist(const Vec2 &v) const;
 	float norm() const;
 	float norm2() const;

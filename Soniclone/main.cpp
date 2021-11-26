@@ -51,8 +51,6 @@ FontSprite *titleFont = new FontSprite();
 std::shared_ptr<Entity> Boshi;
 std::shared_ptr<Level> mainLvl;
 Game game;
-std::shared_ptr<LineCollider> line;
-std::shared_ptr<RectCollider> rect;
 SDL_Color collor = { 180, 0, 180 };
 
 bool boshiFlag = false;
@@ -140,12 +138,25 @@ bool loadMedia()
 
 void loadGame()
 {
+	std::shared_ptr<RectCollider>  rectlu = std::make_shared<RectCollider>(
+		new Vec2(0.0f, 0.0f), yoshiKart->getWidth(), yoshiKart->getHeight());
+	std::shared_ptr<RectCollider>  rectld = std::make_shared<RectCollider>(
+		new Vec2(0.0f, SCREEN_HEIGHT - yoshiKart->getHeight()), yoshiKart->getWidth(), yoshiKart->getHeight());
+	std::shared_ptr<RectCollider>  rectru = std::make_shared<RectCollider>(
+		new Vec2(SCREEN_WIDTH - yoshiKart->getWidth(), 0.0f), yoshiKart->getWidth(), yoshiKart->getHeight());
+	std::shared_ptr<RectCollider>  rectrd = std::make_shared<RectCollider>(
+		new Vec2(SCREEN_WIDTH - yoshiKart->getWidth(), SCREEN_HEIGHT - yoshiKart->getHeight()), yoshiKart->getWidth(), yoshiKart->getHeight());
+	std::shared_ptr<LineCollider>  line = std::make_shared<LineCollider>(
+		new Vec2(-10.0F*SCREEN_WIDTH, SCREEN_HEIGHT-100.0f), new Vec2(10.0F * SCREEN_WIDTH, SCREEN_HEIGHT - 100.0f));
+
 	mainLvl = std::make_shared<Level>();
-	rect = std::make_shared<RectCollider>(new Vec2(0.0f, 0.0f), yoshiKart->getWidth(), yoshiKart->getHeight());
-	line = std::make_shared<LineCollider>(new Vec2(0.0f, SCREEN_HEIGHT), new Vec2(SCREEN_WIDTH, SCREEN_HEIGHT / 2));
-	mainLvl->spawn = Vec2(0.0f, SCREEN_HEIGHT / 2);
+	mainLvl->spawn = Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+	mainLvl->colliders.push_back(rectlu);
+	mainLvl->colliders.push_back(rectld);
+	mainLvl->colliders.push_back(rectru);
+	mainLvl->colliders.push_back(rectrd);
 	mainLvl->colliders.push_back(line);
-	mainLvl->colliders.push_back(rect);
+
 	Boshi = std::make_shared<Entity>(BOSHI_IMG_BMP, 0.3, 0x03);
 	*Boshi->pos = mainLvl->spawn;
 	game = Game(Boshi, mainLvl);
@@ -183,7 +194,7 @@ void doAction(SDL_Event &event)
 		case SDLK_SPACE:
 			boshiFlag = !boshiFlag;
 			if (boshiFlag)
-			{ 
+			{
 				yoshiKart->setFrame(0);
 			}
 			break;
@@ -195,26 +206,13 @@ void doAction(SDL_Event &event)
 
 		case SDLK_r:
 			*Boshi->pos = Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+			Boshi->stop();
 		}
+	}
 
-		if (boshiFlag)
-		{
-			Boshi->doAction(event);
-			switch (event.key.keysym.sym)
-			{
-			case SDLK_UP:
-				break;
-
-			case SDLK_DOWN:
-				break;
-
-			case SDLK_LEFT:
-				break;
-
-			case SDLK_RIGHT:
-				break;
-			}
-		}
+	if (boshiFlag)
+	{
+		Boshi->doAction(event);
 	}
 }
 
@@ -238,9 +236,11 @@ void render()
 		yoshiKart->renderAt(SCREEN_WIDTH - yw, SCREEN_HEIGHT - yh);
 		yoshiKart->toggleFlip(SDL_FLIP_HORIZONTAL);
 		yoshiKart->sync(true);
-		debug::drawCollider(*line, collor);
-		debug::drawCollider(*rect, collor);
-		debug::drawCollider(*Boshi->collider, collor);
+		for (auto collider : mainLvl->colliders)
+		{
+			collider->draw(gRenderer, collor);
+		}
+		Boshi->collider->draw(gRenderer, collor);
 	}
 	SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
 	SDL_RenderPresent(gRenderer);

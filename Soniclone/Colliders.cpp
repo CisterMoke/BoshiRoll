@@ -1,5 +1,10 @@
 #include "Colliders.h"
 
+void CircleCollider::draw(SDL_Renderer *renderer, SDL_Color const &color)
+{
+	circleRGBA(renderer, this->pos->x, this->pos->y, this->r, color.r, color.g, color.b, 255);
+}
+
 CircleCollider::CircleCollider() {}
 CircleCollider::CircleCollider(Vec2 *p, float radius)
 	: pos(p), r(radius) {}
@@ -65,6 +70,13 @@ Vec2 LineCollider::collisionDisp(CircleCollider &c, Vec2 *cptr)
 	if (local) delete cptr;
 
 	return dir.normalize() * d;
+}
+
+void LineCollider::draw(SDL_Renderer *renderer, SDL_Color const &color)
+{
+	lineRGBA(renderer, this->start->x, this->start->y,
+		this->stop->x, this->stop->y,
+		color.r, color.g, color.b, 255);
 }
 
 RectCollider::RectCollider() {}
@@ -157,4 +169,11 @@ Vec2 RectCollider::collisionDisp(RectCollider &r)
 	ydisp = fmaxf(0, fminf(tp.y + this->h - rp.y, tp.y - rp.y + r.h));
 
 	return xdisp < ydisp ? Vec2(xdisp, 0.0f) : Vec2(0.0f, ydisp);
+}
+
+void RectCollider::draw(SDL_Renderer *renderer, SDL_Color const &color)
+{
+	rectangleRGBA(renderer, this->pos->x, this->pos->y,
+		this->pos->x + this->w, this->pos->y + this->h,
+		color.r, color.g, color.b, 255);
 }

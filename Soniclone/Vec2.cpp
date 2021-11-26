@@ -13,6 +13,12 @@ float Vec2::cross(const Vec2 &v) const
 	return x * v.y - y * v.x;
 }
 
+Vec2 Vec2::cross(float z) const
+{
+	// Return cross product of self with z unit vector
+	return Vec2(y * z, - x * z);
+}
+
 float Vec2::dist(const Vec2 &v) const
 {
 	return sqrtf(pow(x - v.x, 2) + pow(y - v.y, 2));

@@ -1,5 +1,7 @@
 #pragma once
 #include <math.h>
+#include <SDL.h>
+#include<SDL2_gfxPrimitives.h>
 #include "Vec2.h"
 
 struct CircleCollider;
@@ -10,6 +12,7 @@ struct BaseCollider
 	~BaseCollider() = default;
 	bool virtual checkCollision(CircleCollider &c, Vec2 *cptr = nullptr) = 0;
 	Vec2 virtual collisionDisp(CircleCollider &c, Vec2 *cptr = nullptr) = 0;
+	void virtual draw(SDL_Renderer *renderer, SDL_Color const &color) = 0;
 };
 
 struct CircleCollider : public BaseCollider
@@ -23,6 +26,7 @@ struct CircleCollider : public BaseCollider
 	~CircleCollider();
 	bool checkCollision(CircleCollider &c, Vec2 *cptr = nullptr);
 	Vec2 collisionDisp(CircleCollider &c, Vec2 *cptr = nullptr);
+	void virtual draw(SDL_Renderer *renderer, SDL_Color const &color);
 };
 
 struct LineCollider : public BaseCollider
@@ -34,6 +38,7 @@ struct LineCollider : public BaseCollider
 	~LineCollider();
 	bool checkCollision(CircleCollider &c, Vec2 *cptr = nullptr);
 	Vec2 collisionDisp(CircleCollider &c, Vec2 *cptr = nullptr);
+	void virtual draw(SDL_Renderer *renderer, SDL_Color const &color);
 };
 
 struct RectCollider : public BaseCollider
@@ -49,4 +54,5 @@ struct RectCollider : public BaseCollider
 	bool checkCollison(RectCollider &r);
 	Vec2 collisionDisp(CircleCollider &c, Vec2 *cptr = nullptr);
 	Vec2 collisionDisp(RectCollider &r);
+	void virtual draw(SDL_Renderer *renderer, SDL_Color const &color);
 };

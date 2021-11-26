@@ -22,15 +22,47 @@ void Entity::push(Vec2 const &f) { *t_force += f; }
 void Entity::rotate(float angle)
 { *theta = fmodf(fmodf(*theta + angle, 360) + 360,  360); }
 void Entity::spin(float alpha) { r_force += alpha; }
+void Entity::stop()
+{
+	*vel = Vec2(0.0f, 0.0f);
+	*t_force = Vec2(0.0f, 0.0f);
+	omega = 0.0f;
+	r_force = 0.0f;
+}
+void Entity::applyVelocities()
+{
+	teleport(*vel);
+	rotate(omega);
+}
+
+void Entity::applyForces()
+{
+	*vel += *t_force;
+	*t_force = Vec2(0.0f, 0.0f);
+
+	omega += r_force;
+	r_force = 0.0f;
+}
+
 void Entity::update()
 {
-	applyTFriction();
-	applyTForce();
-	applyRFriction();
-	applyRForce();
-	*pos += *vel;
-	*theta += omega;
+	if (heldKey)
+	{
+		switch (heldKey)
+		{
+		case SDLK_LEFT:
+			r_force -= 0.2f;
+			break;
+
+		case SDLK_RIGHT:
+			r_force += 0.2f;
+			break;
+		}
+	}
+	applyForces();
+	applyVelocities();
 }
+
 void Entity::render(SDL_Renderer *renderer, Vec2 const &offset)
 {
 	sprite->renderAt(*pos + offset);
@@ -54,48 +86,20 @@ void Entity::doAction(SDL_Event &event)
 			break;
 
 		case SDLK_LEFT:
-			*t_force += Vec2(-5.0f, 0.0f);
-			r_force -= 2;
+			heldKey = SDLK_LEFT;
 			break;
 
 		case SDLK_RIGHT:
-			*t_force += Vec2(5.0f, 0.0f);
-			r_force += 2;
+			heldKey = SDLK_RIGHT;
 			break;
 		}
 	}
-}
 
-void Entity::applyTForce()
-{
-	*vel += *t_force;
-	*t_force = Vec2(0.0f, 0.0f);
-}
-
-void Entity::applyTFriction()
-{
-	float vel_norm = vel->norm();
-	if (fabsf(vel_norm) < 0.01)
+	else if(event.type == SDL_KEYUP)
 	{
-		*vel = Vec2(0.0f, 0.0f);
-		return;
+		if (event.key.keysym.sym == heldKey)
+		{
+			heldKey = SDLK_UNKNOWN;
+		}
 	}
-	*vel -= *vel * 0.05;
-	return;
-}
-
-void Entity::applyRForce()
-{
-	omega += r_force;
-	r_force = 0.0f;
-}
-
-void Entity::applyRFriction()
-{
-	if (fabsf(omega) < 0.01f)
-	{
-		omega = 0.0f;
-		return;
-	}
-	omega -= omega * 0.005;
 }
