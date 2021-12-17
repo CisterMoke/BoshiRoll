@@ -37,10 +37,11 @@ void Game::checkCollisions()
 			Vec2 tangent = n_disp.cross(1.0f);
 
 			float grip = calculateGrip(fabsf(player->vel->dot(n_disp)));
-
-			std::array<float, 2> deltas = calculateGripForce(grip, tangent);
-			*player->t_force += tangent * deltas[0];//copysign(1.0f, deltas[0]) * sqrtf(fabsf(deltas[0]));
-			player->r_force += deltas[1];
+			float slip = slipRatio(tangent);
+			float Ft = tractionForce(slip, grip);
+			std::cout << "TRAC: " << Ft << std::endl;
+			*player->t_force += tangent * Ft;
+			player->r_force += Ft * 180.0f / player->collider->r / M_PI;
 			BREAKPOINT;
 		}
 	}
@@ -70,8 +71,25 @@ void Game::applyAirFriction()
 float Game::calculateGrip(float Fn, float sigma)
 {
 	if (sigma < 0) { sigma = 0.05f / (g + 0.0001f); }
-	return 0.5f;
+	return 0.1f;
 	//return fminf(1.0f, Fn * sigma);
+}
+
+float Game::slipRatio(Vec2 &dir)
+{
+	float vp = dir.dot(*player->vel);
+	float omega = player->omega * M_PI / 180; // convert to radians
+	float r = player->collider->r;
+
+	std::cout << "VP: " << vp << " VR: " << omega*r << std::endl;
+
+	return (omega * r + vp);// / (fabsf(vp) + fabsf(omega * r) + 1e-6f);
+}
+
+float Game::tractionForce(float slip, float grip)
+{
+	float sign = copysignf(1.0f, -slip);
+	return sign * fminf(fabsf(slip * grip), 0.05f);
 }
 
 std::array<float, 2> Game::calculateGripForce(float grip, Vec2 &dir)

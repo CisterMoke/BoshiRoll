@@ -147,7 +147,7 @@ void loadGame()
 	std::shared_ptr<RectCollider>  rectrd = std::make_shared<RectCollider>(
 		new Vec2(SCREEN_WIDTH - yoshiKart->getWidth(), SCREEN_HEIGHT - yoshiKart->getHeight()), yoshiKart->getWidth(), yoshiKart->getHeight());
 	std::shared_ptr<LineCollider>  line = std::make_shared<LineCollider>(
-		new Vec2(-10.0F*SCREEN_WIDTH, SCREEN_HEIGHT-100.0f), new Vec2(10.0F * SCREEN_WIDTH, SCREEN_HEIGHT - 100.0f));
+		new Vec2(0.0f, SCREEN_HEIGHT), new Vec2(SCREEN_WIDTH, SCREEN_HEIGHT - 450.0f));
 
 	mainLvl = std::make_shared<Level>();
 	mainLvl->spawn = Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
