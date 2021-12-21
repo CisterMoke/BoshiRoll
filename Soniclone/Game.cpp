@@ -9,7 +9,7 @@ Game::~Game() {}
 
 void Game::tick()
 {
-	//applyAirFriction();
+	applyAirFriction();
 	player->update();
 
 	checkCollisions();
@@ -17,9 +17,10 @@ void Game::tick()
 	*player->t_force += Vec2(0, g);
 }
 
-void Game::checkCollisions()
+bool Game::checkCollisions()
 {
 	Vec2 *cptr = new Vec2(0.0f, 0.0f);
+	bool check = false;
 	for (auto collider : currLevel->colliders)
 	{
 		if (collider->checkCollision(*player->collider, cptr))
@@ -42,10 +43,13 @@ void Game::checkCollisions()
 			std::cout << "TRAC: " << Ft << std::endl;
 			*player->t_force += tangent * Ft;
 			player->r_force += Ft * 180.0f / player->collider->r / M_PI;
+			applyRollingFriction(grip);
+			check = true;
 			BREAKPOINT;
 		}
 	}
 	delete cptr;
+	return check;
 }
 
 void Game::applyAirFriction()
@@ -66,6 +70,18 @@ void Game::applyAirFriction()
 		return;
 	}
 	player->omega -= player->omega * air_fric_r;
+}
+
+void Game::applyRollingFriction(float grip)
+{
+	float vel_norm = player->vel->norm();
+	if (fabsf(vel_norm) < 0.01f)
+	{
+		*player->vel = Vec2(0.0f, 0.0f);
+		return;
+	}
+	*player->vel -= *player->vel * roll_fric * grip;
+
 }
 
 float Game::calculateGrip(float Fn, float sigma)
@@ -89,60 +105,5 @@ float Game::slipRatio(Vec2 &dir)
 float Game::tractionForce(float slip, float grip)
 {
 	float sign = copysignf(1.0f, -slip);
-	return sign * fminf(fabsf(slip * grip), 0.05f);
-}
-
-std::array<float, 2> Game::calculateGripForce(float grip, Vec2 &dir)
-{
-	/*
-	Calculate delta vp and delta omega based on grip (gamma) with 0 <= gamma <= 1
-	We define grip such that upon impact we have that
-	delta_v_rel_new = -gamma x v_rel_old with v_rel the relative velocity at the contact point.
-	From the conservation of energy we then obtain a quadratic equation for delta vp (omega)
-	which is solved analytically.
-	*/
-	std::array<float, 2> result;
-    float vp = dir.dot(*player->vel);
-	float omega = player->omega * M_PI / 180; // convert to radians
-	float r = player->collider->r;
-	float c = -grip * (vp + omega * r);
-
-	//std::cout << "OMEGA: " << omega << std::endl;
-
-	if (fabsf(c) < 1e-5)
-	{
-		result = { 0.0f, 0.0f };
-		return result;
-	}
-	//std::cout << "c: " << c << std::endl;
-	float I_hat = player->inertia;
-	std::cout << "BEFORE: " << powf(vp, 2.0f) + I_hat * powf(omega * r, 2.0f) << ", ";
-
-	// Skipped some steps to find simplified versions of A, B, C and D
-	float A = 1 + I_hat;
-	float B = - vp + I_hat * omega * r - c; // actually B/2
-	float C = c * (c + 2 * vp);
-	float D = powf(B, 2.0f) - A * C; // factor 4 omitted
-	float sD = sqrtf(D);
-
-	// Alright I've wasted more than enough time on this jeez.
-	int sign = vp*omega <= 0 ? copysignf(1.0f, omega) : copysignf(1.0f, omega * r - vp);
-
-	float delta_omega = (-B + sign * sD) / A / r;
-	float delta_vp = (c + (B - sign * sD) / A);
-	float omega1 = omega + delta_omega;
-	float omega2 = omega + delta_omega - (2 * sign * sD / A / r);
-	float vp1 = vp + delta_vp;
-	float vp2 = vp + delta_vp + 2 * sign * sD / A;
-	std::cout << "AFTER: " << powf(vp + delta_vp, 2.0f) + I_hat * powf((omega + delta_omega) * r, 2.0f) << std::endl;
-	std::cout << "c: " << c << std::endl;
-	std::cout << "SIGN: " << sign << std::endl;
-	std::cout << "OMEGA " << omega << ", VP: " << vp << std::endl;
-	std::cout << "omega1: " << omega1 << ",  vp1: " << vp1 << std::endl;
-	std::cout << "omega2: " << omega2 << ",  vp2: " << vp2 << std::endl;
-	std::cout << "--------------------" << std::endl;
-
-	delta_omega *= 180 / M_PI; // convert to degrees
-	result = { delta_vp, delta_omega };
-	return result;
+	return sign * fminf(fabsf(slip * grip), 0.5f);
 }

@@ -17,11 +17,12 @@ public:
 	bool over = false;
 
 	// Physics
-	float g = 9.0f / GAMETICKS;
-	float air_fric_t = 1.5f / GAMETICKS;
+	float g = 12.0f / GAMETICKS;
+	float air_fric_t = 0.2f / GAMETICKS;
 	float air_fric_r = 0.5f / GAMETICKS;
+	float roll_fric = 0.1f / GAMETICKS;
 
-	float bounciness = 0.5f;
+	float bounciness = 0.2f;
 
 
 	Game() = default;
@@ -32,12 +33,11 @@ public:
 	void tick();
 
 private:
-	void checkCollisions();
+	bool checkCollisions();
 	void applyAirFriction();
+	void applyRollingFriction(float grip);
 	float calculateGrip(float Fn, float sigma = -1.0f);
 	float slipRatio(Vec2 &dir);
 	float tractionForce(float slip, float grip);
-	std::array<float, 2> calculateGripForce(float grip, Vec2 &dir);
-
 };
 

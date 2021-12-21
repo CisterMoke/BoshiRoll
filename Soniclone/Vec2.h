@@ -6,6 +6,7 @@ struct Vec2
 	float x, y;
 
 	Vec2(float x, float y);
+	Vec2(const Vec2 &v);
 
 	float dot(const Vec2 &v) const;
 	float cross(const Vec2 &v) const;

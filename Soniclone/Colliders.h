@@ -12,7 +12,7 @@ struct BaseCollider
 	~BaseCollider() = default;
 	bool virtual checkCollision(CircleCollider &c, Vec2 *cptr = nullptr) = 0;
 	Vec2 virtual collisionDisp(CircleCollider &c, Vec2 *cptr = nullptr) = 0;
-	void virtual draw(SDL_Renderer *renderer, SDL_Color const &color) = 0;
+	void virtual draw(SDL_Renderer *renderer, SDL_Color const &color, Vec2 const &offset = Vec2(0.0f, 0.0f)) = 0;
 };
 
 struct CircleCollider : public BaseCollider
@@ -26,7 +26,7 @@ struct CircleCollider : public BaseCollider
 	~CircleCollider();
 	bool checkCollision(CircleCollider &c, Vec2 *cptr = nullptr);
 	Vec2 collisionDisp(CircleCollider &c, Vec2 *cptr = nullptr);
-	void virtual draw(SDL_Renderer *renderer, SDL_Color const &color);
+	void virtual draw(SDL_Renderer *renderer, SDL_Color const &color, Vec2 const &offset = Vec2(0.0f, 0.0f));
 };
 
 struct LineCollider : public BaseCollider
@@ -38,7 +38,7 @@ struct LineCollider : public BaseCollider
 	~LineCollider();
 	bool checkCollision(CircleCollider &c, Vec2 *cptr = nullptr);
 	Vec2 collisionDisp(CircleCollider &c, Vec2 *cptr = nullptr);
-	void virtual draw(SDL_Renderer *renderer, SDL_Color const &color);
+	void virtual draw(SDL_Renderer *renderer, SDL_Color const &color, Vec2 const &offset = Vec2(0.0f, 0.0f));
 };
 
 struct RectCollider : public BaseCollider
@@ -54,5 +54,5 @@ struct RectCollider : public BaseCollider
 	bool checkCollison(RectCollider &r);
 	Vec2 collisionDisp(CircleCollider &c, Vec2 *cptr = nullptr);
 	Vec2 collisionDisp(RectCollider &r);
-	void virtual draw(SDL_Renderer *renderer, SDL_Color const &color);
+	void virtual draw(SDL_Renderer *renderer, SDL_Color const &color, Vec2 const &offset = Vec2(0.0f, 0.0f));
 };

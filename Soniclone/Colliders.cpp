@@ -1,8 +1,9 @@
 #include "Colliders.h"
 
-void CircleCollider::draw(SDL_Renderer *renderer, SDL_Color const &color)
+void CircleCollider::draw(SDL_Renderer *renderer, SDL_Color const &color, Vec2 const &offset)
 {
-	circleRGBA(renderer, this->pos->x, this->pos->y, this->r, color.r, color.g, color.b, 255);
+	circleRGBA(renderer, this->pos->x + offset.x, this->pos->y + offset.y, this->r,
+		color.r, color.g, color.b, 255);
 }
 
 CircleCollider::CircleCollider() {}
@@ -72,10 +73,10 @@ Vec2 LineCollider::collisionDisp(CircleCollider &c, Vec2 *cptr)
 	return dir.normalize() * d;
 }
 
-void LineCollider::draw(SDL_Renderer *renderer, SDL_Color const &color)
+void LineCollider::draw(SDL_Renderer *renderer, SDL_Color const &color, Vec2 const &offset)
 {
-	lineRGBA(renderer, this->start->x, this->start->y,
-		this->stop->x, this->stop->y,
+	lineRGBA(renderer, this->start->x + offset.x, this->start->y + offset.y,
+		this->stop->x + offset.x, this->stop->y + offset.y,
 		color.r, color.g, color.b, 255);
 }
 
@@ -171,9 +172,9 @@ Vec2 RectCollider::collisionDisp(RectCollider &r)
 	return xdisp < ydisp ? Vec2(xdisp, 0.0f) : Vec2(0.0f, ydisp);
 }
 
-void RectCollider::draw(SDL_Renderer *renderer, SDL_Color const &color)
+void RectCollider::draw(SDL_Renderer *renderer, SDL_Color const &color, Vec2 const &offset)
 {
-	rectangleRGBA(renderer, this->pos->x, this->pos->y,
-		this->pos->x + this->w, this->pos->y + this->h,
+	rectangleRGBA(renderer, this->pos->x + offset.x, this->pos->y + offset.y,
+		this->pos->x + this->w + offset.x, this->pos->y + this->h + offset.y,
 		color.r, color.g, color.b, 255);
 }

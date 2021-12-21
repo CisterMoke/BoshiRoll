@@ -15,6 +15,7 @@
 #include "Entity.h"
 #include "Level.h"
 #include "Game.h"
+#include "Camera.h"
 using namespace glob;
 
 
@@ -51,6 +52,7 @@ FontSprite *titleFont = new FontSprite();
 std::shared_ptr<Entity> Boshi;
 std::shared_ptr<Level> mainLvl;
 Game game;
+Camera cam = Camera();
 SDL_Color collor = { 180, 0, 180 };
 
 bool boshiFlag = false;
@@ -160,6 +162,7 @@ void loadGame()
 	Boshi = std::make_shared<Entity>(BOSHI_IMG_BMP, 0.3, 0x03);
 	*Boshi->pos = mainLvl->spawn;
 	game = Game(Boshi, mainLvl);
+	cam.setOrigin(*Boshi->pos);
 }
 
 void close()
@@ -226,21 +229,22 @@ void render()
 
 	if (boshiFlag)
 	{
-		Boshi->render(gRenderer);
+		Vec2 o = cam.getOrigin() - Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+		Boshi->render(gRenderer, o * -1);
 		int yw = yoshiKart->getWidth() / 2;
 		int yh = yoshiKart->getHeight() / 2;
-		yoshiKart->renderAt(yw, yh);
-		yoshiKart->renderAt(yw, SCREEN_HEIGHT - yh);
+		yoshiKart->renderAt(yw - o.x, yh - o.y);
+		yoshiKart->renderAt(yw - o.x, SCREEN_HEIGHT - yh - o.y);
 		yoshiKart->toggleFlip(SDL_FLIP_HORIZONTAL);
-		yoshiKart->renderAt(SCREEN_WIDTH - yw, yh);
-		yoshiKart->renderAt(SCREEN_WIDTH - yw, SCREEN_HEIGHT - yh);
+		yoshiKart->renderAt(SCREEN_WIDTH - yw - o.x, yh - o.y);
+		yoshiKart->renderAt(SCREEN_WIDTH - yw - o.x, SCREEN_HEIGHT - yh - o.y);
 		yoshiKart->toggleFlip(SDL_FLIP_HORIZONTAL);
 		yoshiKart->sync(true);
 		for (auto collider : mainLvl->colliders)
 		{
-			collider->draw(gRenderer, collor);
+			collider->draw(gRenderer, collor, o * -1);
 		}
-		Boshi->collider->draw(gRenderer, collor);
+		Boshi->collider->draw(gRenderer, collor, o * -1);
 	}
 	SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
 	SDL_RenderPresent(gRenderer);
