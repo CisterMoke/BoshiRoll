@@ -18,12 +18,12 @@ Mat22::Mat22(float m[2][2])
 
 }
 
-Mat22 Mat22::T()
+Mat22 Mat22::T() const
 {
 	return Mat22(elements[0][0], elements[1][0], elements[0][1], elements[1][1]);
 }
 
-float Mat22::norm()
+float Mat22::norm() const
 {
 	float sqSum = elements[0][0] * elements[0][0]
 		+ elements[0][1] * elements[0][1]
@@ -39,14 +39,14 @@ Mat22 Mat22::operator+(const Mat22 &mat) const
 	float m[2][2] = {
 		{elements[0][0] + mat(0, 0), elements[0][1] + mat(0, 1)},
 		{elements[1][0] + mat(1, 0), elements[1][1] + mat(1, 1)} };
-	return Mat22(mat);
+	return Mat22(m);
 }
 Mat22 Mat22::operator-(const Mat22 &mat) const
 {
 	float m[2][2] = {
 		{elements[0][0] - mat(0, 0), elements[0][1] - mat(0, 1)},
 		{elements[1][0] - mat(1, 0), elements[1][1] - mat(1, 1)} };
-	return Mat22(mat);
+	return Mat22(m);
 }
 Mat22 Mat22::operator*(const Mat22 &mat) const
 {
@@ -54,7 +54,7 @@ Mat22 Mat22::operator*(const Mat22 &mat) const
 	float x2 = elements[0][0] * mat(0, 1) + elements[0][1] * mat(1, 1);
 	float x3 = elements[1][0] * mat(0, 0) + elements[1][1] * mat(1, 0);
 	float x4 = elements[1][0] * mat(0, 1) + elements[1][1] * mat(1, 1);
-	return Mat22(mat);
+	return Mat22(x1, x2, x3, x4);
 }
 
 Mat22 &Mat22::operator+=(const Mat22 &mat)
@@ -81,7 +81,7 @@ bool Mat22::operator==(const Mat22 &mat) const
 
 Vec2 Mat22::operator*(const Vec2 &v) const
 {
-	return v * *this;
+	return v * T();
 }
 
 
@@ -100,4 +100,16 @@ Mat22 Mat22::operator*(float &c) const
 Mat22 Mat22::operator/(float &c) const
 {
 	return Mat22(elements[0][0] / c, elements[0][1] / c, elements[1][0] / c, elements[1][1] / c);
+}
+
+
+Mat22 rotMat(float theta)
+{
+	return Mat22(cosf(theta), -sinf(theta), sinf(theta), cosf(theta));
+}
+
+
+Mat22 zoomMat(float rx, float ry)
+{
+	return Mat22(1.0f * rx, 0.0f, 0.0f, 1.0f * ry);
 }

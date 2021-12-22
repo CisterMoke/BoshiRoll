@@ -1,5 +1,8 @@
 #pragma once
 #include <math.h>
+#ifndef _USE_MATH_DEFINES
+#define _USE_MATH_DEFINES
+#endif
 
 struct Vec2;
 
@@ -13,8 +16,8 @@ public:
 	Mat22(float x1, float x2, float x3, float x4);
 	Mat22(float m[2][2]);
 
-	Mat22 T();
-	float norm();
+	Mat22 T() const;
+	float norm() const;
 
 	float operator()(int row, int col) const;
 
@@ -35,3 +38,8 @@ public:
 	Mat22 operator*(float &c) const;
 	Mat22 operator/(float &c) const;
 };
+
+const Mat22 I = Mat22(1.0f, 0.0f, 0.0f, 1.0f);
+
+Mat22 rotMat(float theta);
+Mat22 zoomMat(float rx, float ry);

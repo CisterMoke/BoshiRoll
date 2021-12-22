@@ -44,8 +44,8 @@ Vec2 Vec2::operator/(float c) const { return Vec2(x / c, y / c); }
 
 Vec2 Vec2::operator*(const Mat22 &mat) const
 {
-	float a = x * mat(0, 0) + y * mat(0, 1);
-	float b = x * mat(1, 0) + y * mat(1, 1);
+	float a = x * mat(0, 0) + y * mat(1, 0);
+	float b = x * mat(0, 1) + y * mat(1, 1);
 	return Vec2(a, b);
 }
 

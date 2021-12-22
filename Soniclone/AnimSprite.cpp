@@ -63,13 +63,13 @@ void AnimSprite::sync(bool reverse)
 	
 }
 
-void AnimSprite::renderAt(int x, int y)
+void AnimSprite::renderAt(int x, int y, Vec2 const &off, float phi, float zx, float zy)
 {
 	SDL_Rect clip = { frameRects[currFrame][0], frameRects[currFrame][1], frameSize[0], frameSize[1] };
-	BaseSprite::renderAt(x, y, &clip);
+	BaseSprite::renderAt(x, y, off, phi, zx, zy, &clip);
 }
 
-void AnimSprite::renderAt(Vec2 const &pos)
+void AnimSprite::renderAt(Vec2 const &pos, Vec2 const &off, float phi, float zx, float zy)
 {
-	renderAt(pos.x, pos.y);
+	renderAt(pos.x, pos.y, off, phi, zx, zy);
 }

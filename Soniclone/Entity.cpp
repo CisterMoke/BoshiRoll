@@ -63,9 +63,9 @@ void Entity::update()
 	applyVelocities();
 }
 
-void Entity::render(SDL_Renderer *renderer, Vec2 const &offset)
+void Entity::render(SDL_Renderer *renderer, Vec2 const &orig, Vec2 const &offset, float phi, float zx, float zy)
 {
-	sprite->renderAt(*pos + offset);
+	sprite->renderAt(*pos - orig, offset, phi, zx, zy);
 }
 
 void Entity::doAction(SDL_Event &event)

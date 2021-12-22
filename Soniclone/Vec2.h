@@ -1,5 +1,8 @@
 #pragma once
 #include <math.h>
+#ifndef _USE_MATH_DEFINES
+#define _USE_MATH_DEFINES
+#endif
 #include "Mat22.h"
 struct Vec2
 {

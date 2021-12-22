@@ -207,6 +207,36 @@ void doAction(SDL_Event &event)
 			e.type = SDL_QUIT;
 			SDL_PushEvent(&e);
 
+		case SDLK_i:
+			cam.ry /= 1.02;
+			break;
+
+		case SDLK_k:
+			cam.ry *= 1.02;
+			break;
+
+		case SDLK_j:
+			cam.rx /= 1.02;
+			break;
+
+		case SDLK_l:
+			cam.rx *= 1.02;
+			break;
+
+		case SDLK_u:
+			cam.theta -= 5;
+			break;
+
+		case SDLK_o:
+			cam.theta += 5;
+			break;
+
+		case SDLK_p:
+			cam.theta = 0;
+			cam.rx = 1.0f;
+			cam.ry = 1.0f;
+			break;
+
 		case SDLK_r:
 			*Boshi->pos = Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
 			Boshi->stop();
@@ -229,22 +259,24 @@ void render()
 
 	if (boshiFlag)
 	{
-		Vec2 o = cam.getOrigin() - Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
-		Boshi->render(gRenderer, o * -1);
+		Vec2 orig = cam.getOrigin();
+		Vec2 off = Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+		Mat22 T = cam.getTransform();
+		Boshi->render(gRenderer, orig, off, cam.theta, cam.rx, cam.ry);
 		int yw = yoshiKart->getWidth() / 2;
 		int yh = yoshiKart->getHeight() / 2;
-		yoshiKart->renderAt(yw - o.x, yh - o.y);
-		yoshiKart->renderAt(yw - o.x, SCREEN_HEIGHT - yh - o.y);
+		yoshiKart->renderAt(Vec2(yw - orig.x, yh - orig.y), off, cam.theta, cam.rx, cam.ry);
+		yoshiKart->renderAt(Vec2(yw - orig.x, SCREEN_HEIGHT - yh - orig.y), off, cam.theta, cam.rx, cam.ry);
 		yoshiKart->toggleFlip(SDL_FLIP_HORIZONTAL);
-		yoshiKart->renderAt(SCREEN_WIDTH - yw - o.x, yh - o.y);
-		yoshiKart->renderAt(SCREEN_WIDTH - yw - o.x, SCREEN_HEIGHT - yh - o.y);
+		yoshiKart->renderAt(Vec2(SCREEN_WIDTH - yw - orig.x, yh - orig.y), off, cam.theta, cam.rx, cam.ry);
+		yoshiKart->renderAt(Vec2(SCREEN_WIDTH - yw - orig.x, SCREEN_HEIGHT - yh - orig.y), off, cam.theta, cam.rx, cam.ry);
 		yoshiKart->toggleFlip(SDL_FLIP_HORIZONTAL);
 		yoshiKart->sync(true);
 		for (auto collider : mainLvl->colliders)
 		{
-			collider->draw(gRenderer, collor, o * -1);
+			collider->draw(gRenderer, collor, orig, off, T);
 		}
-		Boshi->collider->draw(gRenderer, collor, o * -1);
+		Boshi->collider->draw(gRenderer, collor, orig, off, T);
 	}
 	SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
 	SDL_RenderPresent(gRenderer);

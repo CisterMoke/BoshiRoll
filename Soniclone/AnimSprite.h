@@ -21,8 +21,8 @@ public:
 	void advance(int frames = 1);
 	void rewind(int frames = 1);
 	void sync(bool reverse = false);
-	void renderAt(int x, int y);
-	void renderAt(Vec2 const &pos);
+	void renderAt(int x, int y, Vec2 const &off = Vec2(0.0f, 0.0f), float phi = 0.0f, float zx = 1.0f, float zy = 1.0f);
+	void renderAt(Vec2 const &pos, Vec2 const &off = Vec2(0.0f, 0.0f), float phi = 0.0f, float zx = 1.0f, float zy = 1.0f);
 
 private:
 	int numFrames = 0;

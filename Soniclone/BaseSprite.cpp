@@ -73,14 +73,16 @@ void BaseSprite::flip(SDL_RendererFlip f) { _flip = f; }
 void BaseSprite::toggleFlip(SDL_RendererFlip f) { _flip =(SDL_RendererFlip)(_flip ^ f); }
 void BaseSprite::rotate(float angle) { theta -= fmodf(angle, 360); }
 
-void BaseSprite::renderAt(int x, int y, SDL_Rect *clip)
+void BaseSprite::renderAt(int x, int y, Vec2 const &off, float phi, float zx, float zy, SDL_Rect *clip)
 {
-	SDL_Rect dest = { x - getWidth() / 2, y - getHeight() / 2, getWidth(), getHeight() };
-	_render(texture, clip, &dest, theta, NULL);
+	Mat22 T = rotMat(-phi * M_PI / 180.0f) * zoomMat(zx, zy);
+	Vec2 lu = T * Vec2(x - getWidth() / 2, y - getHeight() / 2) + off;
+	SDL_Rect dest = { lu.x, lu.y, getWidth() * zx, getHeight() * zy };
+	_render(texture, clip, &dest, theta+phi, NULL);
 }
-void BaseSprite::renderAt(Vec2 const &pos, SDL_Rect *clip)
+void BaseSprite::renderAt(Vec2 const &pos, Vec2 const &off, float phi, float zx, float zy, SDL_Rect *clip)
 {
-	renderAt(pos.x, pos.y, clip);
+	renderAt(pos.x, pos.y, off, phi, zx, zy, clip);
 }
 
 void BaseSprite::clearMem()

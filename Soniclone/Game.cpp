@@ -36,11 +36,9 @@ bool Game::checkCollisions()
 			}
 
 			Vec2 tangent = n_disp.cross(1.0f);
-
 			float grip = calculateGrip(fabsf(player->vel->dot(n_disp)));
 			float slip = slipRatio(tangent);
 			float Ft = tractionForce(slip, grip);
-			std::cout << "TRAC: " << Ft << std::endl;
 			*player->t_force += tangent * Ft;
 			player->r_force += Ft * 180.0f / player->collider->r / M_PI;
 			applyRollingFriction(grip);
@@ -96,8 +94,6 @@ float Game::slipRatio(Vec2 &dir)
 	float vp = dir.dot(*player->vel);
 	float omega = player->omega * M_PI / 180; // convert to radians
 	float r = player->collider->r;
-
-	std::cout << "VP: " << vp << " VR: " << omega*r << std::endl;
 
 	return (omega * r + vp);// / (fabsf(vp) + fabsf(omega * r) + 1e-6f);
 }

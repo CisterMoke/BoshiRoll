@@ -1,9 +1,11 @@
 #include "Colliders.h"
 
-void CircleCollider::draw(SDL_Renderer *renderer, SDL_Color const &color, Vec2 const &offset)
+void CircleCollider::draw(SDL_Renderer *renderer, const SDL_Color  &color, const Vec2 &orig, const Vec2 &offset, const Mat22 &T)
 {
-	circleRGBA(renderer, this->pos->x + offset.x, this->pos->y + offset.y, this->r,
-		color.r, color.g, color.b, 255);
+	Vec2 center = T * (*pos - orig) + offset;
+	float zoom_x = (T * Vec2(1.0f, 0.0f)).norm();
+	float zoom_y = (T * Vec2(0.0f, 1.0f)).norm();
+	ellipseRGBA(renderer, center.x, center.y, r * zoom_x, r * zoom_y, color.r, color.g, color.b, 255);
 }
 
 CircleCollider::CircleCollider() {}
@@ -73,11 +75,11 @@ Vec2 LineCollider::collisionDisp(CircleCollider &c, Vec2 *cptr)
 	return dir.normalize() * d;
 }
 
-void LineCollider::draw(SDL_Renderer *renderer, SDL_Color const &color, Vec2 const &offset)
+void LineCollider::draw(SDL_Renderer *renderer, const SDL_Color &color, const Vec2 &orig, const Vec2 &offset, const Mat22 &T)
 {
-	lineRGBA(renderer, this->start->x + offset.x, this->start->y + offset.y,
-		this->stop->x + offset.x, this->stop->y + offset.y,
-		color.r, color.g, color.b, 255);
+	Vec2 begin = T * (*start - orig) + offset;
+	Vec2 end = T * (*stop - orig) + offset;
+	lineRGBA(renderer, begin. x, begin.y, end.x, end.y, color.r, color.g, color.b, 255);
 }
 
 RectCollider::RectCollider() {}
@@ -172,9 +174,11 @@ Vec2 RectCollider::collisionDisp(RectCollider &r)
 	return xdisp < ydisp ? Vec2(xdisp, 0.0f) : Vec2(0.0f, ydisp);
 }
 
-void RectCollider::draw(SDL_Renderer *renderer, SDL_Color const &color, Vec2 const &offset)
+void RectCollider::draw(SDL_Renderer *renderer, const SDL_Color &color, const Vec2 &orig, const Vec2 &offset, const Mat22 &T)
 {
-	rectangleRGBA(renderer, this->pos->x + offset.x, this->pos->y + offset.y,
-		this->pos->x + this->w + offset.x, this->pos->y + this->h + offset.y,
-		color.r, color.g, color.b, 255);
+	Vec2 lu = T * (*pos - orig) + offset;
+	float zoom_x = (T * Vec2(1.0f, 0.0f)).norm();
+	float zoom_y = (T * Vec2(0.0f, 1.0f)).norm();
+
+	rectangleRGBA(renderer, lu.x, lu.y, lu.x + w*zoom_x, lu.y + h*zoom_y, color.r, color.g, color.b, 255);
 }
