@@ -176,9 +176,9 @@ Vec2 RectCollider::collisionDisp(RectCollider &r)
 
 void RectCollider::draw(SDL_Renderer *renderer, const SDL_Color &color, const Vec2 &orig, const Vec2 &offset, const Mat22 &T)
 {
-	Vec2 lu = T * (*pos - orig) + offset;
-	float zoom_x = (T * Vec2(1.0f, 0.0f)).norm();
-	float zoom_y = (T * Vec2(0.0f, 1.0f)).norm();
+	Vec2 center = T * (*pos + Vec2(w/2, h/2) - orig) + offset;
+	float w_hat = w * (T * Vec2(1.0f, 0.0f)).norm();
+	float h_hat = h * (T * Vec2(0.0f, 1.0f)).norm();
 
-	rectangleRGBA(renderer, lu.x, lu.y, lu.x + w*zoom_x, lu.y + h*zoom_y, color.r, color.g, color.b, 255);
+	rectangleRGBA(renderer, center.x - w_hat/2, center.y - h_hat/2, center.x + w_hat/2, center.y + h_hat/2, color.r, color.g, color.b, 255);
 }

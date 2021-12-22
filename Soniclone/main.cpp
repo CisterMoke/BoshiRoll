@@ -208,19 +208,13 @@ void doAction(SDL_Event &event)
 			SDL_PushEvent(&e);
 
 		case SDLK_i:
-			cam.ry /= 1.02;
-			break;
-
-		case SDLK_k:
+			cam.rx *= 1.02;
 			cam.ry *= 1.02;
 			break;
 
-		case SDLK_j:
+		case SDLK_k:
 			cam.rx /= 1.02;
-			break;
-
-		case SDLK_l:
-			cam.rx *= 1.02;
+			cam.ry /= 1.02;
 			break;
 
 		case SDLK_u:
