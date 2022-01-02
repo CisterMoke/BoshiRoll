@@ -8,6 +8,7 @@
 #include <sstream>
 #include "globals.h"
 #include "utils.h"
+#include "debug.h"
 #include "BaseSprite.h"
 #include "AnimSprite.h"
 #include "FontSprite.h"
@@ -37,7 +38,6 @@ void close();
 SDL_Window *glob::gWindow = nullptr;
 SDL_Renderer *glob::gRenderer = nullptr;
 SDL_Surface *glob::gScreen = nullptr;
-TTF_Font *glob::gFont = nullptr;
 SDL_Surface *gBackImg = nullptr;
 SDL_Texture *gBackText = nullptr;
 
@@ -48,12 +48,14 @@ SDL_Surface *gBoshiSurfs[ORIENT_TOTAL];
 SDL_Texture *gBoshiTexts[ORIENT_TOTAL];
 AnimSprite *yoshiKart = new AnimSprite();
 FontSprite *titleFont = new FontSprite();
+FontSprite *debugFont = new FontSprite();
 
 std::shared_ptr<Entity> Boshi;
 std::shared_ptr<Level> mainLvl;
 Game game;
 Camera cam = Camera();
 SDL_Color collor = { 180, 0, 180 };
+DebugMode debug = DEBUG_OFF;
 
 bool boshiFlag = false;
 std::stringstream boshiText;
@@ -105,6 +107,17 @@ bool init()
 	return true;
 }
 
+TTF_Font *loadFont(std::string path, int size)
+{
+	TTF_Font *font = TTF_OpenFont(path.c_str(), size);
+	if (font == NULL)
+	{
+		std::cout << "Unable to load font " << path << std::endl;
+		return NULL;
+	}
+	return font;
+}
+
 bool loadMedia()
 {
 	yoshiKart->loadFromFile(YOSHI_KART, { 32, 32 }, 0x03);
@@ -124,15 +137,11 @@ bool loadMedia()
 		return false;
 	}
 
-	glob::gFont = TTF_OpenFont(COMIC_FONT_BOLD.c_str(), 54);
-	if (glob::gFont == NULL)
-	{
-		std::cout << "Unable to load font " << COMIC_FONT_BOLD << std::endl;
-		return false;
-	}
-	titleFont->setFont(glob::gFont);
+	titleFont->setFont(loadFont(COMIC_FONT_BOLD, 54));
 	titleFont->setColor({ 22, 26, 255 });
 	titleFont->setText("BOSHI SPIN!!!");
+
+	debugFont->setFont(loadFont(COMIC_FONT_BOLD, 16));
 
 
 	return true;
@@ -234,6 +243,11 @@ void doAction(SDL_Event &event)
 		case SDLK_r:
 			*Boshi->pos = Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
 			Boshi->stop();
+			break;
+		case SDLK_F3:
+			if (debug == DEBUG_OFF) { debug = DEBUG_ALL; }
+			else { debug = DEBUG_OFF; }
+			break;
 		}
 	}
 
@@ -255,7 +269,6 @@ void render()
 	{
 		Vec2 orig = cam.getOrigin();
 		Vec2 off = Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
-		Mat22 T = cam.getTransform();
 		Boshi->render(gRenderer, orig, off, cam.theta, cam.rx, cam.ry);
 		int yw = yoshiKart->getWidth() / 2;
 		int yh = yoshiKart->getHeight() / 2;
@@ -266,11 +279,16 @@ void render()
 		yoshiKart->renderAt(Vec2(SCREEN_WIDTH - yw - orig.x, SCREEN_HEIGHT - yh - orig.y), off, cam.theta, cam.rx, cam.ry);
 		yoshiKart->toggleFlip(SDL_FLIP_HORIZONTAL);
 		yoshiKart->sync(true);
+	}
+
+	if ((debug & DEBUG_INFO) == DEBUG_INFO) { renderText(Boshi.get(), debugFont); }
+	if ((debug & DEBUG_DRAW) == DEBUG_DRAW)
+	{
 		for (auto collider : mainLvl->colliders)
 		{
-			collider->draw(gRenderer, collor, orig, off, T);
+			drawCollider(gRenderer, collider.get(), &cam, Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2));
 		}
-		Boshi->collider->draw(gRenderer, collor, orig, off, T);
+		drawCollider(gRenderer, Boshi->collider, &cam, Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2));
 	}
 	SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
 	SDL_RenderPresent(gRenderer);

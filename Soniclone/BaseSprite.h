@@ -26,6 +26,10 @@ public:
 	void setWidth(int width);
 	void setHeight(int height);
 	void setTheta(float angle);
+
+	void renderAtLU(int x, int y, Vec2 const &off = Vec2(0.0f, 0.0f), float phi = 0.0f, float zx = 1.0f, float zy = 1.0f, SDL_Rect *clip = NULL);
+	void renderAtLU(Vec2 const &pos, Vec2 const &off = Vec2(0.0f, 0.0f), float phi = 0.0f, float zx = 1.0f, float zy = 1.0f, SDL_Rect *clip = NULL);
+	
 	void renderAt(int x, int y, Vec2 const &off = Vec2(0.0f, 0.0f), float phi = 0.0f, float zx = 1.0f, float zy = 1.0f, SDL_Rect *clip = NULL);
 	void renderAt(Vec2 const &pos, Vec2 const &off = Vec2(0.0f, 0.0f), float phi = 0.0f, float zx = 1.0f, float zy = 1.0f, SDL_Rect *clip = NULL);
 

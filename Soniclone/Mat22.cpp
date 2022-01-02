@@ -34,6 +34,12 @@ float Mat22::norm() const
 
 float Mat22::operator()(int row, int col) const { return elements[row][col]; }
 
+std::ostream &operator<<(std::ostream &os, const Mat22 &m)
+{
+	os << "(" << m.elements[0][0] << ", " << m.elements[0][1] << ", " << m.elements[1][0] << ", " << m.elements[1][1] << ")";
+	return os;
+}
+
 Mat22 Mat22::operator+(const Mat22 &mat) const
 {
 	float m[2][2] = {

@@ -29,5 +29,4 @@ namespace glob
 	extern SDL_Window *gWindow;
 	extern SDL_Renderer *gRenderer;
 	extern SDL_Surface *gScreen;
-	extern TTF_Font *gFont;
 }

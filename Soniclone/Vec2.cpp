@@ -32,6 +32,12 @@ float Vec2::norm2() const { return x * x + y * y; }
 
 Vec2 Vec2::normalize() { return *this / this->norm(); }
 
+std::ostream &operator<<(std::ostream &os, const Vec2 &v)
+{
+	os << "(" << v.x << ", " << v.y << ")";
+	return os;
+}
+
 Vec2 Vec2::operator+(const Vec2 &v) const { return Vec2(x + v.x, y + v.y); }
 Vec2 Vec2::operator-(const Vec2 &v) const { return Vec2(x - v.x, y - v.y); }
 Vec2 Vec2::operator*(const Vec2 &v) const { return Vec2(x * v.x, y * v.y); }

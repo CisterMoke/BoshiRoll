@@ -20,6 +20,44 @@ void FontSprite::setFont(TTF_Font *font)
 	createTexture();
 }
 
+std::vector<std::pair<Vec2, std::string>> FontSprite::parseText(std::string txt)
+{
+	std::vector<std::pair<Vec2, std::string>> pairs;
+
+	std::regex newline("\n");
+	std::sregex_token_iterator first{ txt.begin(), txt.end(), newline, -1 }, last;//the '-1' is what makes the regex split (-1 := what was not matched)
+	std::vector<std::string> lines{ first, last };
+
+	int x = 0;
+	int y = 0;
+	for (std::string line : lines)
+	{
+		std::regex tab("\t");
+		std::sregex_token_iterator first{ line.begin(), line.end(), tab, -1 }, last;//the '-1' is what makes the regex split (-1 := what was not matched)
+		std::vector<std::string> substrings{ first, last };
+
+		for (std::string sub : substrings)
+		{
+			if (sub != "")
+			{
+				pairs.push_back(std::pair(Vec2(x, y), sub));
+				setText(sub);
+			}
+			x += tabsize;
+		}
+
+		x = 0;
+		y += getHeight();
+	}
+
+	baseSurf = nullptr;
+	texture = nullptr;
+	w = 0;
+	h = 0;
+	
+	return pairs;
+}
+
 void FontSprite::createTexture()
 {
 	clearMem();

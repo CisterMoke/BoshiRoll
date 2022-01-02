@@ -73,6 +73,21 @@ void BaseSprite::flip(SDL_RendererFlip f) { _flip = f; }
 void BaseSprite::toggleFlip(SDL_RendererFlip f) { _flip =(SDL_RendererFlip)(_flip ^ f); }
 void BaseSprite::rotate(float angle) { theta -= fmodf(angle, 360); }
 
+void BaseSprite::renderAtLU(int x, int y, Vec2 const &off, float phi, float zx, float zy, SDL_Rect *clip)
+{
+	Mat22 T = rotMat(-phi * M_PI / 180.0f) * zoomMat(zx, zy);
+	Vec2 lu = T * Vec2(x, y) + off;
+	float w_hat = getWidth() * zx;
+	float h_hat = getHeight() * zy;
+	SDL_Rect dest = { lu.x, lu.y, w_hat, h_hat };
+	_render(texture, clip, &dest, theta - phi, NULL);
+}
+
+void BaseSprite::renderAtLU(Vec2 const &pos, Vec2 const &off, float phi, float zx, float zy, SDL_Rect *clip)
+{
+	renderAtLU(pos.x, pos.y, off, phi, zx, zy, clip);
+}
+
 void BaseSprite::renderAt(int x, int y, Vec2 const &off, float phi, float zx, float zy, SDL_Rect *clip)
 {
 	Mat22 T = rotMat(-phi * M_PI / 180.0f) * zoomMat(zx, zy);
@@ -80,7 +95,7 @@ void BaseSprite::renderAt(int x, int y, Vec2 const &off, float phi, float zx, fl
 	float w_hat = getWidth() * zx;
 	float h_hat = getHeight() * zy;
 	SDL_Rect dest = { center.x - w_hat / 2, center.y - h_hat / 2, w_hat, h_hat };
-	_render(texture, clip, &dest, theta+phi, NULL);
+	_render(texture, clip, &dest, theta-phi, NULL);
 }
 void BaseSprite::renderAt(Vec2 const &pos, Vec2 const &off, float phi, float zx, float zy, SDL_Rect *clip)
 {

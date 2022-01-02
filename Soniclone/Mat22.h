@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include <math.h>
 #ifndef _USE_MATH_DEFINES
 #define _USE_MATH_DEFINES
@@ -20,6 +21,7 @@ public:
 	float norm() const;
 
 	float operator()(int row, int col) const;
+	friend std::ostream &operator<<(std::ostream &os, const Mat22 &m);
 
 	Mat22 operator+(const Mat22 &mat) const;
 	Mat22 operator-(const Mat22 &mat) const;

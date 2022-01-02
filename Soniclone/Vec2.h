@@ -1,5 +1,6 @@
 #pragma once
 #include <math.h>
+#include <iostream>
 #ifndef _USE_MATH_DEFINES
 #define _USE_MATH_DEFINES
 #endif
@@ -19,6 +20,8 @@ struct Vec2
 	float norm2() const;
 
 	Vec2 normalize();
+
+	friend std::ostream &operator<<(std::ostream &os, const Vec2 &v);
 
 	Vec2 operator+(const Vec2 &v) const;
 	Vec2 operator-(const Vec2 &v) const;
