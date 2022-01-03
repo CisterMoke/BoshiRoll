@@ -35,25 +35,25 @@ std::vector<std::pair<Vec2, std::string>> FontSprite::parseText(std::string txt)
 		std::regex tab("\t");
 		std::sregex_token_iterator first{ line.begin(), line.end(), tab, -1 }, last;//the '-1' is what makes the regex split (-1 := what was not matched)
 		std::vector<std::string> substrings{ first, last };
+		int max_h = 0;
 
 		for (std::string sub : substrings)
 		{
+			int last_h = 0;
+			max_h = 0;
+
 			if (sub != "")
 			{
 				pairs.push_back(std::pair(Vec2(x, y), sub));
-				setText(sub);
 			}
 			x += tabsize;
+			TTF_SizeText(_font, sub.c_str(), NULL, &last_h);
+			max_h = fmaxf(max_h, last_h);
 		}
 
 		x = 0;
-		y += getHeight();
+		y += max_h;
 	}
-
-	baseSurf = nullptr;
-	texture = nullptr;
-	w = 0;
-	h = 0;
 	
 	return pairs;
 }

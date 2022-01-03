@@ -71,7 +71,7 @@ bool init()
 	}
 
 	//Create window
-	gWindow = SDL_CreateWindow("Soniclone", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL);
+	gWindow = SDL_CreateWindow("BoshiRoll", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL);
 	if (gWindow == NULL)
 	{
 		std::cout << "Window could not be created!" << SDL_GetError() << "\n";
@@ -139,7 +139,6 @@ bool loadMedia()
 
 	titleFont->setFont(loadFont(COMIC_FONT_BOLD, 54));
 	titleFont->setColor({ 22, 26, 255 });
-	titleFont->setText("BOSHI SPIN!!!");
 
 	debugFont->setFont(loadFont(COMIC_FONT_BOLD, 16));
 
@@ -158,7 +157,7 @@ void loadGame()
 	std::shared_ptr<RectCollider>  rectrd = std::make_shared<RectCollider>(
 		new Vec2(SCREEN_WIDTH - yoshiKart->getWidth(), SCREEN_HEIGHT - yoshiKart->getHeight()), yoshiKart->getWidth(), yoshiKart->getHeight());
 	std::shared_ptr<LineCollider>  line = std::make_shared<LineCollider>(
-		new Vec2(0.0f, SCREEN_HEIGHT), new Vec2(SCREEN_WIDTH, SCREEN_HEIGHT - 450.0f));
+		new Vec2(-SCREEN_WIDTH, SCREEN_HEIGHT*0.8f), new Vec2(2*SCREEN_WIDTH, SCREEN_HEIGHT*0.6f));
 
 	mainLvl = std::make_shared<Level>();
 	mainLvl->spawn = Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
