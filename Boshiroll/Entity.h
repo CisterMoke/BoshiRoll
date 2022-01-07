@@ -19,9 +19,9 @@ public:
 	BaseSprite *sprite;
 	CircleCollider *collider;
 
-	Entity(std::string spritePath, float zoom = 1.0f, int mode = 0x01);
-	Entity(std::string spritePath, Vec2 *pos, float zoom = 1.0f, int mode = 0x01);
-	Entity(std::string spritePath, float x, float y, float zoom = 1.0f, int mode = 0x01);
+	Entity(std::string spritePath, float zoom = 1.0f, int mode = ALPHA | COLORKEY);
+	Entity(std::string spritePath, Vec2 &pos, float zoom = 1.0f, int mode = ALPHA | COLORKEY);
+	Entity(std::string spritePath, float x, float y, float zoom = 1.0f, int mode = ALPHA | COLORKEY);
 
 	~Entity();
 

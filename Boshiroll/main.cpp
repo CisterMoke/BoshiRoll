@@ -13,7 +13,7 @@
 #include "AnimSprite.h"
 #include "FontSprite.h"
 #include "Colliders.h"
-#include "Entity.h"
+#include "Player.h"
 #include "Level.h"
 #include "Game.h"
 #include "Camera.h"
@@ -50,7 +50,7 @@ AnimSprite *yoshiKart = new AnimSprite();
 FontSprite *titleFont = new FontSprite();
 FontSprite *debugFont = new FontSprite();
 
-std::shared_ptr<Entity> Boshi;
+std::shared_ptr<Player> Boshi;
 std::shared_ptr<Level> mainLvl;
 Game game;
 Camera cam = Camera();
@@ -120,7 +120,7 @@ TTF_Font *loadFont(std::string path, int size)
 
 bool loadMedia()
 {
-	yoshiKart->loadFromFile(YOSHI_KART, { 32, 32 }, 0x03);
+	yoshiKart->loadFromFile(YOSHI_KART, { 32, 32 }, ALPHA | COLORKEY);
 	yoshiKart->zoom(3, 3);
 	gBackImg = loadSurface(BACKGROUND_IMG);
 	if (gBackImg == NULL)
@@ -167,7 +167,7 @@ void loadGame()
 	mainLvl->colliders.push_back(rectrd);
 	mainLvl->colliders.push_back(line);
 
-	Boshi = std::make_shared<Entity>(BOSHI_IMG_BMP, 0.3, 0x03);
+	Boshi = std::make_shared<Player>(BOSHI_IMG_BMP, 0.3, 0x03);
 	*Boshi->pos = mainLvl->spawn;
 	game = Game(Boshi, mainLvl);
 	cam.setOrigin(*Boshi->pos);
@@ -280,7 +280,7 @@ void render()
 		yoshiKart->sync(true);
 	}
 
-	if ((debug & DEBUG_INFO) == DEBUG_INFO) { renderText(Boshi.get(), debugFont); }
+	//if ((debug & DEBUG_INFO) == DEBUG_INFO) { renderText(Boshi.get(), debugFont); }
 	if ((debug & DEBUG_DRAW) == DEBUG_DRAW)
 	{
 		for (auto collider : mainLvl->colliders)

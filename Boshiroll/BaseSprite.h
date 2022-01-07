@@ -5,6 +5,12 @@
 #include "utils.h"
 #include "Vec2.h"
 
+enum LoadMode
+{
+	ALPHA = 0x01,
+	COLORKEY = 0x02
+};
+
 class BaseSprite
 {
 	friend class Entity;
@@ -12,7 +18,7 @@ public:
 	BaseSprite();
 	~BaseSprite();
 
-	bool loadFromFile(std::string path, int mode = 0x01);
+	bool loadFromFile(std::string path, int mode = ALPHA | COLORKEY);
 
 	int getWidth();
 	int getHeight();

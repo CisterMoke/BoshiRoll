@@ -13,7 +13,7 @@ class AnimSprite: public BaseSprite
 public:
 	AnimSprite();
 
-	bool loadFromFile(std::string path, std::array<int, 2> _frameSize, int mode = 0x01);
+	bool loadFromFile(std::string path, std::array<int, 2> _frameSize, int mode = ALPHA | COLORKEY);
 	void reset();
 
 	void setFrame(int frameNum);

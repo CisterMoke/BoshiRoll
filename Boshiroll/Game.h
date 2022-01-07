@@ -3,7 +3,7 @@
 #include <memory>
 #include "globals.h"
 #include "Colliders.h"
-#include "Entity.h"
+#include "Player.h"
 #include "Level.h"
 
 using glob::GAMETICKS;
@@ -11,7 +11,7 @@ using glob::GAMETICKS;
 class Game
 {
 public:
-	std::shared_ptr<Entity> player;
+	std::shared_ptr<Player> player;
 	std::shared_ptr<Level> currLevel;
 	bool paused = false;
 	bool over = false;
@@ -26,8 +26,8 @@ public:
 
 
 	Game() = default;
-	Game(Entity &player, Level &level);
-	Game(std::shared_ptr<Entity> player, std::shared_ptr<Level> level);
+	Game(Player &player, Level &level);
+	Game(std::shared_ptr<Player> player, std::shared_ptr<Level> level);
 	~Game();
 
 	void tick();

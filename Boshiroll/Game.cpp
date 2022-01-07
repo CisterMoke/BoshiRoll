@@ -1,8 +1,8 @@
 #include "Game.h"
 
-Game::Game(Entity &player, Level &level)
-	:player(std::make_shared<Entity>(player)), currLevel(std::make_shared<Level>(level)) {}
-Game::Game(std::shared_ptr<Entity> player, std::shared_ptr<Level> level)
+Game::Game(Player &player, Level &level)
+	:player(std::make_shared<Player>(player)), currLevel(std::make_shared<Level>(level)) {}
+Game::Game(std::shared_ptr<Player> player, std::shared_ptr<Level> level)
 	: player(player), currLevel(level) {}
 
 Game::~Game() {}

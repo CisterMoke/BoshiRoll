@@ -8,8 +8,8 @@ Entity::Entity(std::string spritePath, float zoom, int mode)
 	theta = &sprite->theta;
 	collider = new CircleCollider(pos, sprite->getWidth()/2);
 }
-Entity::Entity(std::string spritePath, Vec2 *pos, float zoom, int mode)
-	:Entity(spritePath, zoom, mode) { pos = pos; }
+Entity::Entity(std::string spritePath, Vec2 &pos, float zoom, int mode)
+	:Entity(spritePath, zoom, mode) { this->pos = &pos; }
 Entity::Entity(std::string spritePath, float x, float y, float zoom, int mode)
 	:Entity(spritePath, zoom, mode)  {pos = new Vec2(x, y); }
 Entity::~Entity()
