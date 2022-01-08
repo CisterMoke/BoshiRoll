@@ -34,8 +34,4 @@ public:
 	void applyForces();
 	void update();
 	void render(SDL_Renderer *renderer, Vec2 const &orig = Vec2(0.0f, 0.0f), Vec2 const &offset = Vec2(0.0f, 0.0f), float phi = 0.0f, float zx = 1.0f, float zy = 1.0f);
-	void doAction(SDL_Event &event);
-
-private:
-	SDL_KeyCode heldKey = SDLK_UNKNOWN;
 };

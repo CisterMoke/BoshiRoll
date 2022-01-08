@@ -46,19 +46,6 @@ void Entity::applyForces()
 
 void Entity::update()
 {
-	if (heldKey)
-	{
-		switch (heldKey)
-		{
-		case SDLK_LEFT:
-			r_force -= 0.2f;
-			break;
-
-		case SDLK_RIGHT:
-			r_force += 0.2f;
-			break;
-		}
-	}
 	applyForces();
 	applyVelocities();
 }
@@ -66,40 +53,4 @@ void Entity::update()
 void Entity::render(SDL_Renderer *renderer, Vec2 const &orig, Vec2 const &offset, float phi, float zx, float zy)
 {
 	sprite->renderAt(*pos - orig, offset, phi, zx, zy);
-}
-
-void Entity::doAction(SDL_Event &event)
-{
-	if (event.type == SDL_KEYDOWN)
-	{
-		switch (event.key.keysym.sym)
-		{
-		case SDLK_SPACE:
-			break;
-
-		case SDLK_UP:
-			*t_force += Vec2(0.0f, -5.0f);
-			break;
-
-		case SDLK_DOWN:
-			*t_force += Vec2(0.0f, 5.0f);
-			break;
-
-		case SDLK_LEFT:
-			heldKey = SDLK_LEFT;
-			break;
-
-		case SDLK_RIGHT:
-			heldKey = SDLK_RIGHT;
-			break;
-		}
-	}
-
-	else if(event.type == SDL_KEYUP)
-	{
-		if (event.key.keysym.sym == heldKey)
-		{
-			heldKey = SDLK_UNKNOWN;
-		}
-	}
 }

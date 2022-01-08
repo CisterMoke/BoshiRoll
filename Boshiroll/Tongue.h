@@ -21,11 +21,17 @@ class Tongue
 	Vec2 *anchr = nullptr;
 	Vec2 *origin = nullptr;
 
-	float shootSpeed = 5.0f;
-	Vec2 shootDir = Vec2(0.0f, 0.0f);
-	int maxLen = 300;
+	float k = 0.1f;
+	float rest_l = 1.5f;
+
+	int reel_i;
+
+	float shoot_speed = 15.0f;
+	//Vec2 shoot_dir = Vec2(0.0f, 0.0f);
+	int max_len = 300;
 
 	void correctPos();
+	void correctAngles();
 
 	TongueState state = IDLE;
 
@@ -37,9 +43,12 @@ public:
 
 	TongueState getState();
 
+	Vec2 springForce(Vec2 &disp);
+	Vec2 bottomForce(Vec2 &pos);
+
 	void shoot(Vec2 const &dir);
 	void release();
-	void anchor(Vec2 *pos);
+	void anchor(Vec2 &pos);
 	void idle();
 	void teleport(Vec2 &v);
 	void push(Vec2 &f);

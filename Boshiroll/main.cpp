@@ -215,16 +215,6 @@ void doAction(SDL_Event &event)
 			e.type = SDL_QUIT;
 			SDL_PushEvent(&e);
 
-		case SDLK_i:
-			cam.rx *= 1.02;
-			cam.ry *= 1.02;
-			break;
-
-		case SDLK_k:
-			cam.rx /= 1.02;
-			cam.ry /= 1.02;
-			break;
-
 		case SDLK_u:
 			cam.theta -= 5;
 			break;
@@ -248,6 +238,20 @@ void doAction(SDL_Event &event)
 			else { debug = DEBUG_OFF; }
 			break;
 		}
+	}
+	else if (event.type == SDL_MOUSEWHEEL)
+	{
+		if (event.wheel.y > 0)
+		{
+			cam.rx *= 1.1;
+			cam.ry *= 1.1;
+		}
+		else if (event.wheel.y < 0)
+		{
+			cam.rx /= 1.1;
+			cam.ry /= 1.1;
+		}
+
 	}
 
 	if (boshiFlag)
