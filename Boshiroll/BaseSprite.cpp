@@ -97,6 +97,7 @@ void BaseSprite::renderAt(int x, int y, Vec2 const &off, float phi, float zx, fl
 	SDL_Rect dest = { center.x - w_hat / 2, center.y - h_hat / 2, w_hat, h_hat };
 	_render(texture, clip, &dest, theta-phi, NULL);
 }
+
 void BaseSprite::renderAt(Vec2 const &pos, Vec2 const &off, float phi, float zx, float zy, SDL_Rect *clip)
 {
 	renderAt(pos.x, pos.y, off, phi, zx, zy, clip);

@@ -47,8 +47,8 @@ SDL_Texture *gTexture = nullptr;
 SDL_Surface *gBoshiSurfs[ORIENT_TOTAL];
 SDL_Texture *gBoshiTexts[ORIENT_TOTAL];
 AnimSprite *yoshiKart = new AnimSprite();
-FontSprite *titleFont = new FontSprite();
-FontSprite *debugFont = new FontSprite();
+FontSprite *titleFont;
+FontSprite *debugFont;
 
 std::shared_ptr<Player> Boshi;
 std::shared_ptr<Level> mainLvl;
@@ -137,10 +137,10 @@ bool loadMedia()
 		return false;
 	}
 
-	titleFont->setFont(loadFont(COMIC_FONT_BOLD, 54));
+	titleFont = new FontSprite(loadFont(COMIC_FONT_BOLD, 54));
 	titleFont->setColor({ 22, 26, 255 });
 
-	debugFont->setFont(loadFont(COMIC_FONT_BOLD, 16));
+	debugFont = new FontSprite(loadFont(COMIC_FONT_BOLD, 16));
 
 
 	return true;
@@ -260,13 +260,15 @@ void doAction(SDL_Event &event)
 	}
 }
 
+float title_angle = 0.0f;
 void render()
 {
+	title_angle -= 0.5;
 	SDL_RenderClear(gRenderer);
 	boshiText.str("");
 	boshiText << TITLE_TEXT.substr(boshiSplit) << TITLE_TEXT.substr(0, boshiSplit);
 	titleFont->setText(boshiText.str());
-	titleFont->renderAt(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+	titleFont->renderAt(0, 0, Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2), title_angle);
 
 	if (boshiFlag)
 	{
@@ -284,7 +286,7 @@ void render()
 		yoshiKart->sync(true);
 	}
 
-	//if ((debug & DEBUG_INFO) == DEBUG_INFO) { renderText(Boshi.get(), debugFont); }
+	if ((debug & DEBUG_INFO) == DEBUG_INFO) { renderText(Boshi.get(), debugFont); }
 	if ((debug & DEBUG_DRAW) == DEBUG_DRAW)
 	{
 		for (auto collider : mainLvl->colliders)

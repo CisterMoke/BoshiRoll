@@ -18,19 +18,19 @@ Tongue::~Tongue()
 
 TongueState Tongue::getState() { return state; }
 
-Vec2 Tongue::springForce(Vec2 &disp)
+Vec2 Tongue::springForce(Vec2 &disp, Vec2 &vel)
 {
 	Vec2 norm;
 	if (disp == Vec2(0.0f, 0.0f)) { norm = Vec2(0.0f, 0.01f); }
 	else { norm = disp.normalize(); }
-	float d = rest_l - disp.norm();
+	float r = rest_l - disp.norm();
 
-	return norm * (k * d);
+	return norm * (k * r - d * norm.dot(vel));
 }
 
 void Tongue::shoot(Vec2 const &dir)
 {
-	reel_i = parts.size() - 2;
+	reel_i = parts.size() - 1;
 	Vec2 shoot_dir = dir;
 	shoot_dir = shoot_dir.normalize();
 	Vec2 vel = shoot_dir * shoot_speed;
@@ -151,13 +151,13 @@ void Tongue::update()
 		if (state == RELEASED)
 		{
 			Vec2 d_down = *parts[0]->pos - *parts[1]->pos;
-			parts[0]->push(springForce(d_down));
+			parts[0]->push(springForce(d_down, *parts[0]->vel));
 		}
 		for (int i = 1; i < reel_i; i++)
 		{
 			Vec2 d_up = *parts[i]->pos - *parts[i - 1]->pos;
 			Vec2 d_down = *parts[i]->pos - *parts[i + 1]->pos;
-			Vec2 F = springForce(d_up) + springForce(d_down);
+			Vec2 F = springForce(d_up, *parts[i]->vel) + springForce(d_down, *parts[i]->vel);
 			parts[i]->push(F);
 		}
 		for (Entity *e : parts) { e->update(); }
