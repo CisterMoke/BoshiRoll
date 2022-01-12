@@ -9,9 +9,19 @@ Entity::Entity(std::string spritePath, float zoom, int mode)
 	collider = new CircleCollider(pos, sprite->getWidth()/2);
 }
 Entity::Entity(std::string spritePath, Vec2 &pos, float zoom, int mode)
-	:Entity(spritePath, zoom, mode) { this->pos = &pos; }
+	:Entity(spritePath, zoom, mode)
+{ 
+	this->pos = &pos;
+	delete this->collider->pos;
+	this->collider->pos = &pos;
+}
 Entity::Entity(std::string spritePath, float x, float y, float zoom, int mode)
-	:Entity(spritePath, zoom, mode)  {pos = new Vec2(x, y); }
+	:Entity(spritePath, zoom, mode)
+{
+	pos = new Vec2(x, y);
+	delete this->collider->pos;
+	this->collider->pos = pos;
+}
 Entity::~Entity()
 {
 	delete pos, vel, t_force, sprite, collider;

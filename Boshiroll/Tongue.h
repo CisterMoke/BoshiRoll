@@ -25,18 +25,22 @@ class Tongue
 	float rest_l = 5.0f;
 	float d = 0.1f;
 
-	int reel_i;
 
 	float shoot_speed = 10.0f;
-	int max_len = 450;
+	int reel = 0;
+	float reel_len = 20.0f;
+
+	TongueState state = IDLE;
 
 	void correctPos();
 	void correctAngles();
 
-	TongueState state = IDLE;
+	void reel_out();
+	void reel_in();
 
 public:
-	std::array<Entity *, 10> parts{};
+	std::array<Entity *, 19> parts{};
+	BaseSprite *tongueEnd;
 
 	Tongue(Vec2 *origin);
 	~Tongue();
@@ -53,6 +57,7 @@ public:
 	void teleport(Vec2 &v);
 	void push(Vec2 &f);
 	void update();
+	void render(SDL_Renderer *renderer, Vec2 const &orig = Vec2(0.0f, 0.0f), Vec2 const &offset = Vec2(0.0f, 0.0f), float phi = 0.0f, float zx = 1.0f, float zy = 1.0f);
 
 };
 

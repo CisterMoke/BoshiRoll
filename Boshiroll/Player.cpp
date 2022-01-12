@@ -93,8 +93,5 @@ void Player::update()
 void Player::render(SDL_Renderer *renderer, Vec2 const &orig, Vec2 const &offset, float phi, float zx, float zy)
 {
 	Entity::render(renderer, orig, offset, phi, zx, zy);
-	if (tongue->getState() != IDLE)
-	{
-		for (Entity *e : tongue->parts) { e->render(renderer, orig, offset, phi, zx, zy); }
-	}
+	tongue->render(renderer, orig, offset, phi, zx, zy);
 }
