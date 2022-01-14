@@ -3,6 +3,7 @@
 FontSprite::FontSprite(TTF_Font *font)
 	: _font(font)
 {
+	texture_cache.fill(nullptr);
 	setText(" ");
 	TTF_SizeText(_font, "A", nullptr, &linespace);
 }

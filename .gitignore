@@ -1,4 +1,5 @@
 .vs
+.vscode
 x64
 resources
 *.dll
@@ -8,3 +9,5 @@ resources
 *.aps
 *.vcxproj.user
 *user
+out
+build
