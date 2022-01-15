@@ -5,7 +5,7 @@
 #include<SDL_image.h>
 #include<SDL2_gfxPrimitives.h>
 #include "globals.h"
-#include "Colliders.h"
+
 
 SDL_Surface *loadSurface(std::string path, SDL_PixelFormatEnum pixelFormat = SDL_PIXELFORMAT_RGB888);
 

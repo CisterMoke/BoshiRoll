@@ -20,17 +20,37 @@ find_package(SDL2_image REQUIRED)
 find_package(SDL2_gfx REQUIRED)
 find_package(SDL2_ttf REQUIRED)
 
-message("Found the following libraries ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${SDL2_GFX_LIBRARY} ${SDL2_TTF_LIBRARY}")
+add_executable(${PROJECT_NAME} ${SRC_DIR}/main.cpp)
 
-add_executable(${PROJECT_NAME} src/main.cpp)
+include_directories(
+	${SDL2_INCLUDE_DIRS}
+	${SDL2_IMAGE_INCLUDE_DIRS}
+	${SDL2_TTF_INCLUDE_DIRS}
+	${SDL2_GFX_INCLUDE_DIRS})
 
-add_subdirectory(src)
+add_subdirectory(${SRC_DIR})
 
-target_link_libraries(${PROJECT_NAME} PUBLIC SDL2::Main SDL2::Image SDL2::GFX SDL2::TTF)
+target_link_libraries(${PROJECT_NAME}
+	PUBLIC
+		SDL2::Main
+		SDL2::Image SDL2::GFX
+		SDL2::TTF
+		algebra
+		sprites
+		utils
+		colliders
+		entities
+		level
+		)
 
 add_custom_command(TARGET BoshiRoll POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/${LIB_DIR} $<TARGET_FILE_DIR:BoshiRoll>
-  )
-  add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/${SRC_DIR}/${REC_DIR} $<TARGET_FILE_DIR:BoshiRoll>/${REC_DIR}
-    )
+	COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/${LIB_DIR} $<TARGET_FILE_DIR:BoshiRoll>
+	)
+
+if ($<CONFIG:x64-Debug,x86-Debug,Debug>)
+	set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}")
+else()
+	add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/${REC_DIR} $<TARGET_FILE_DIR:BoshiRoll>/${REC_DIR}
+	)
+endif()
