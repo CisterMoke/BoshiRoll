@@ -45,6 +45,11 @@ bool Game::checkCollisions()
 			check = true;
 			BREAKPOINT;
 		}
+		if (player->tongue->getState() == TongueState::SHOT
+			&& collider->checkCollision(*player->tongue->getTip()->collider))
+		{
+			player->tongue->anchor();
+		}
 	}
 	delete cptr;
 	return check;

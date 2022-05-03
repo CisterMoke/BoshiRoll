@@ -30,7 +30,7 @@ float Vec2::dist(const Vec2 &v) const
 float Vec2::norm() const { return sqrtf(x * x + y * y); }
 float Vec2::norm2() const { return x * x + y * y; }
 
-Vec2 Vec2::normalize() { return *this / this->norm(); }
+Vec2 Vec2::normalize() const { return *this / this->norm(); }
 
 std::ostream &operator<<(std::ostream &os, const Vec2 &v)
 {

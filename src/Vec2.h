@@ -9,7 +9,7 @@ struct Vec2
 {
 	float x, y;
 
-	Vec2() {}
+	Vec2() :x(0), y(0) {};
 	Vec2(float x, float y);
 	Vec2(const Vec2 &v);
 
@@ -20,7 +20,7 @@ struct Vec2
 	float norm() const;
 	float norm2() const;
 
-	Vec2 normalize();
+	Vec2 normalize() const;
 
 	friend std::ostream &operator<<(std::ostream &os, const Vec2 &v);
 

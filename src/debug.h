@@ -6,6 +6,7 @@
 #include <SDL.h>
 #include "Camera.h"
 #include "Entity.h"
+#include "Player.h"
 #include "FontSprite.h"
 
 enum DebugMode

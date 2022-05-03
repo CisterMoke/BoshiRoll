@@ -6,12 +6,12 @@
 #include "Entity.h"
 #include "Vec2.h"
 
-enum TongueState
+enum class TongueState
 {
-	IDLE = 0,
-	SHOT = 1,
-	ANCHORED = 2,
-	RELEASED = 3
+	IDLE,
+	SHOT,
+	ANCHORED,
+	RELEASED
 };
 
 class Tongue
@@ -21,16 +21,15 @@ class Tongue
 	Vec2 *anchr = nullptr;
 	Vec2 *origin = nullptr;
 
-	float k = 0.15f;
-	float rest_l = 5.0f;
-	float d = 0.1f;
+	float k = 0.1f;
+	float rest_l = 60.0f;
+	float d = 0.05f;
 
 
 	float shoot_speed = 10.0f;
 	int reel = 0;
-	float reel_len = 20.0f;
 
-	TongueState state = IDLE;
+	TongueState state = TongueState::IDLE;
 
 	void correctPos();
 	void correctAngles();
@@ -39,19 +38,21 @@ class Tongue
 	void reel_in();
 
 public:
-	std::array<Entity *, 19> parts{};
+	std::array<Entity *, 4> parts{};
 	BaseSprite *tongueEnd;
 
 	Tongue(Vec2 *origin);
 	~Tongue();
 
 	TongueState getState();
+	Entity* getTip();
+	int getReel();
 
 	Vec2 springForce(Vec2 &disp, Vec2 &vel);
-	Vec2 bottomForce(Vec2 &pos, Vec2 &vel);
 
-	void shoot(Vec2 const &dir);
+	void shoot(Vec2 const &dir, Vec2 const &r_vel);
 	void release();
+	void anchor();
 	void anchor(Vec2 &pos);
 	void idle();
 	void teleport(Vec2 &v);

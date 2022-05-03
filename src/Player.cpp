@@ -19,11 +19,11 @@ void Player::doAction(SDL_Event &event)
 {
 	if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT)
 	{
-		if (tongue->getState() == IDLE)
+		if (tongue->getState() == TongueState::IDLE)
 		{
 			Vec2 dir = Vec2(event.button.x - glob::SCREEN_WIDTH / 2, event.button.y - glob::SCREEN_HEIGHT / 2);
 			if (dir == Vec2(0.0f, 0.0f)) { dir = Vec2(1.0f, 0.0f); }
-			tongue->shoot(dir);
+			tongue->shoot(dir, *vel);
 		}
 	}
 	else if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_RIGHT)
@@ -32,7 +32,7 @@ void Player::doAction(SDL_Event &event)
 	}
 	else if (event.type == SDL_MOUSEBUTTONUP && event.button.button == SDL_BUTTON_LEFT)
 	{
-		if (tongue->getState() != RELEASED && tongue->getState() != IDLE)
+		if (tongue->getState() != TongueState::RELEASED && tongue->getState() != TongueState::IDLE)
 		{
 			tongue->release();
 		}
@@ -85,6 +85,12 @@ void Player::update()
 			r_force += 0.2f;
 			break;
 		}
+	}
+	if (tongue->getState() == TongueState::ANCHORED)
+	{
+		Vec2 disp = *pos - *tongue->parts[tongue->getReel()]->pos;
+		Vec2 F = tongue->springForce(disp, *vel);
+		push(F);
 	}
 	Entity::update();
 	tongue->update();

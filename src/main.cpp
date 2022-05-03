@@ -55,9 +55,9 @@ std::shared_ptr<Level> mainLvl;
 Game game;
 Camera cam = Camera();
 SDL_Color collor = { 180, 0, 180 };
-DebugMode debug = DEBUG_OFF;
+DebugMode debug = DEBUG_ALL;
 
-bool boshiFlag = false;
+bool boshiFlag = true;
 std::stringstream boshiText;
 int boshiSplit = 0;
 
@@ -171,6 +171,7 @@ void loadGame()
 	*Boshi->pos = mainLvl->spawn;
 	game = Game(Boshi, mainLvl);
 	cam.setOrigin(*Boshi->pos);
+	cam.rx = 0.5, cam.ry = 0.5;
 }
 
 void close()
@@ -294,7 +295,7 @@ void render()
 			drawCollider(gRenderer, collider.get(), &cam, Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2));
 		}
 		drawCollider(gRenderer, Boshi->collider, &cam, Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2));
-		if (Boshi->tongue->getState() != IDLE)
+		if (Boshi->tongue->getState() != TongueState::IDLE)
 		{
 			drawCollider(gRenderer, Boshi->tongue->parts[0]->collider, &cam, Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2));
 		}
