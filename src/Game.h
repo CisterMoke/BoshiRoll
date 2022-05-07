@@ -34,10 +34,10 @@ public:
 
 private:
 	bool checkCollisions();
-	void applyAirFriction();
-	void applyRollingFriction(float grip);
+	void applyAirFriction(Entity &e);
+	void applyRollingFriction(Entity &e, float grip);
 	float calculateGrip(float Fn, float sigma = -1.0f);
-	float slipRatio(Vec2 &dir);
+	float slipRatio(Entity &e, Vec2 &dir);
 	float tractionForce(float slip, float grip);
 };
 

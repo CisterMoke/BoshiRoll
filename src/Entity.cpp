@@ -47,10 +47,10 @@ void Entity::applyVelocities()
 
 void Entity::applyForces()
 {
-	*vel += *t_force;
+	*vel += *t_force/mass;
 	*t_force = Vec2(0.0f, 0.0f);
 
-	omega += r_force;
+	omega += r_force/mass;
 	r_force = 0.0f;
 }
 

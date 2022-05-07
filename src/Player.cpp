@@ -45,11 +45,11 @@ void Player::doAction(SDL_Event &event)
 			break;
 
 		case SDLK_UP:
-			*t_force += Vec2(0.0f, -5.0f);
+			*t_force += Vec2(0.0f, -5.0f) * mass;
 			break;
 
 		case SDLK_DOWN:
-			*t_force += Vec2(0.0f, 5.0f);
+			*t_force += Vec2(0.0f, 5.0f) * mass;
 			break;
 
 		case SDLK_LEFT:
@@ -78,18 +78,18 @@ void Player::update()
 		switch (heldKey)
 		{
 		case SDLK_LEFT:
-			r_force -= 0.2f;
+			r_force -= 0.2f * mass;
 			break;
 
 		case SDLK_RIGHT:
-			r_force += 0.2f;
+			r_force += 0.2f * mass;
 			break;
 		}
 	}
 	if (tongue->getState() == TongueState::ANCHORED)
 	{
 		Vec2 disp = *pos - *tongue->parts[tongue->getReel()]->pos;
-		Vec2 F = tongue->springForce(disp, *vel);
+		Vec2 F = tongue->springForce(disp, *vel, mass, 0);
 		push(F);
 	}
 	Entity::update();

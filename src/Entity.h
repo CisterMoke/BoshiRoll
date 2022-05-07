@@ -15,7 +15,8 @@ public:
 	float *theta;
 	float omega = 0.0f; // Clockwise
 	float r_force = 0.0f;
-	float inertia = 0.5f; // "reduced" I_hat = I/(mr^2) with I the actual inertia.
+	float inertia = 0.5f; // "reduced" I_hat = I/(r^2) with I the actual inertia.
+	float mass = 1.0;
 	BaseSprite *sprite;
 	CircleCollider *collider;
 

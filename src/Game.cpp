@@ -9,12 +9,13 @@ Game::~Game() {}
 
 void Game::tick()
 {
-	applyAirFriction();
+	applyAirFriction(*player);
 	player->update();
 
 	checkCollisions();
 
-	*player->t_force += Vec2(0, g);
+	*player->t_force += Vec2(0, g * player->mass);
+	player->tongue->applyGravity(g);
 }
 
 bool Game::checkCollisions()
@@ -37,11 +38,11 @@ bool Game::checkCollisions()
 
 			Vec2 tangent = n_disp.cross(1.0f);
 			float grip = calculateGrip(fabsf(player->vel->dot(n_disp)));
-			float slip = slipRatio(tangent);
+			float slip = slipRatio(*player, tangent);
 			float Ft = tractionForce(slip, grip);
 			*player->t_force += tangent * Ft;
 			player->r_force += Ft * 180.0f / player->collider->r / M_PI;
-			applyRollingFriction(grip);
+			applyRollingFriction(*player, grip);
 			check = true;
 			BREAKPOINT;
 		}
@@ -55,35 +56,35 @@ bool Game::checkCollisions()
 	return check;
 }
 
-void Game::applyAirFriction()
+void Game::applyAirFriction(Entity &e)
 {
 	// Translational friction
-	float vel_norm = player->vel->norm();
+	float vel_norm = e.vel->norm();
 	if (fabsf(vel_norm) < 0.01f)
 	{
-		*player->vel = Vec2(0.0f, 0.0f);
+		*e.vel = Vec2(0.0f, 0.0f);
 		return;
 	}
-	*player->vel -= *player->vel * air_fric_t;
+	*e.vel -= *e.vel * air_fric_t/e.mass;
 
 	// Rotational friction
-	if (fabsf(player->omega) < 0.01f)
+	if (fabsf(e.omega) < 0.01f)
 	{
-		player->omega = 0.0f;
+		e.omega = 0.0f;
 		return;
 	}
-	player->omega -= player->omega * air_fric_r;
+	e.omega -= e.omega * air_fric_r/e.mass;
 }
 
-void Game::applyRollingFriction(float grip)
+void Game::applyRollingFriction(Entity &e, float grip)
 {
-	float vel_norm = player->vel->norm();
+	float vel_norm = e.vel->norm();
 	if (fabsf(vel_norm) < 0.01f)
 	{
-		*player->vel = Vec2(0.0f, 0.0f);
+		*e.vel = Vec2(0.0f, 0.0f);
 		return;
 	}
-	*player->vel -= *player->vel * roll_fric * grip;
+	*e.vel -= *e.vel * roll_fric * grip;
 
 }
 
@@ -94,11 +95,11 @@ float Game::calculateGrip(float Fn, float sigma)
 	//return fminf(1.0f, Fn * sigma);
 }
 
-float Game::slipRatio(Vec2 &dir)
+float Game::slipRatio(Entity &e, Vec2 &dir)
 {
 	float vp = dir.dot(*player->vel);
-	float omega = player->omega * M_PI / 180; // convert to radians
-	float r = player->collider->r;
+	float omega = e.omega * M_PI / 180; // convert to radians
+	float r = e.collider->r;
 
 	return (omega * r + vp);// / (fabsf(vp) + fabsf(omega * r) + 1e-6f);
 }

@@ -47,7 +47,6 @@ add_library(level OBJECT
 
 set(Headers
     ${CMAKE_CURRENT_SOURCE_DIR}/debug.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/globals.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Game.h
     )
 
