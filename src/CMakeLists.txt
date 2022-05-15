@@ -1,8 +1,10 @@
 add_library(algebra OBJECT 
     ${CMAKE_CURRENT_SOURCE_DIR}/Mat22.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Vec2.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Quadrant.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Vec2.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Mat22.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Quadrant.cpp
     )
 
 add_library(utils OBJECT

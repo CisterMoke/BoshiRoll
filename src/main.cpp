@@ -157,7 +157,12 @@ void loadGame()
 	std::shared_ptr<RectCollider>  rectrd = std::make_shared<RectCollider>(
 		new Vec2(SCREEN_WIDTH - yoshiKart->getWidth(), SCREEN_HEIGHT - yoshiKart->getHeight()), yoshiKart->getWidth(), yoshiKart->getHeight());
 	std::shared_ptr<LineCollider>  line = std::make_shared<LineCollider>(
-		new Vec2(-SCREEN_WIDTH, SCREEN_HEIGHT*0.8f), new Vec2(2*SCREEN_WIDTH, SCREEN_HEIGHT*0.6f));
+		new Vec2(-SCREEN_WIDTH, SCREEN_HEIGHT * 0.8f), new Vec2(2 * SCREEN_WIDTH, SCREEN_HEIGHT * 0.6f));
+	std::shared_ptr<LineCollider>  line2 = std::make_shared<LineCollider>(
+		new Vec2(-1.5 * SCREEN_WIDTH, SCREEN_HEIGHT * 2.1f), new Vec2(2.5 * SCREEN_WIDTH, SCREEN_HEIGHT * 2.1f));
+	std::shared_ptr<RampCollider>  ramp = std::make_shared<RampCollider>(
+		new Vec2(0.0f, SCREEN_HEIGHT * 2.1f-50), 50, Quadrant::IV);
+
 
 	mainLvl = std::make_shared<Level>();
 	mainLvl->spawn = Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
@@ -165,7 +170,9 @@ void loadGame()
 	mainLvl->colliders.push_back(rectld);
 	mainLvl->colliders.push_back(rectru);
 	mainLvl->colliders.push_back(rectrd);
-	mainLvl->colliders.push_back(line);
+	//mainLvl->colliders.push_back(line);
+	mainLvl->colliders.push_back(line2);
+	mainLvl->colliders.push_back(ramp);
 
 	Boshi = std::make_shared<Player>(BOSHI_IMG_BMP, 0.3, 0x03);
 	*Boshi->pos = mainLvl->spawn;
