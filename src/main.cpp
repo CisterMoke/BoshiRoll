@@ -38,8 +38,8 @@ void close();
 SDL_Window *glob::gWindow = nullptr;
 SDL_Renderer *glob::gRenderer = nullptr;
 SDL_Surface *glob::gScreen = nullptr;
-SDL_Surface *gBackImg = nullptr;
-SDL_Texture *gBackText = nullptr;
+SDL_Surface *gTitleImg = nullptr;
+SDL_Texture *gTitleText = nullptr;
 
 SDL_Surface *gSurf = nullptr;
 SDL_Texture *gTexture = nullptr;
@@ -104,6 +104,7 @@ bool init()
 	gScreen = SDL_GetWindowSurface(gWindow);
 	SDL_FillRect(gScreen, NULL, SDL_MapRGB(gScreen->format, 0xFF, 0xFF, 0xFF));
 	SDL_UpdateWindowSurface(gWindow);
+	mainLvl = std::make_shared<Level>();
 	return true;
 }
 
@@ -120,22 +121,18 @@ TTF_Font *loadFont(std::string path, int size)
 
 bool loadMedia()
 {
+	mainLvl->setBackground(BACKGROUND_IMG);
+	mainLvl->setForeground(FOREGROUND_IMG);
 	yoshiKart->loadFromFile(YOSHI_KART, { 32, 32 }, ALPHA | COLORKEY);
 	yoshiKart->zoom(3, 3);
-	gBackImg = loadSurface(BACKGROUND_IMG);
-	if (gBackImg == NULL)
+	gTitleImg = loadSurface(TITLE_IMG);
+	if (gTitleImg == NULL)
 	{
 		return false;
 	}
 
-	gBackText = SDL_CreateTextureFromSurface(gRenderer, gBackImg);
+	gTitleText = SDL_CreateTextureFromSurface(gRenderer, gTitleImg);
 	SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 0 );
-
-	SDL_Surface *boshiSurf = loadSurface(BOSHI_IMG, SDL_PIXELFORMAT_RGBA8888);
-	if (boshiSurf == NULL)
-	{
-		return false;
-	}
 
 	titleFont = new FontSprite(loadFont(COMIC_FONT_BOLD, 54));
 	titleFont->setColor({ 22, 26, 255 });
@@ -159,12 +156,11 @@ void loadGame()
 	std::shared_ptr<LineCollider>  line = std::make_shared<LineCollider>(
 		new Vec2(-SCREEN_WIDTH, SCREEN_HEIGHT * 0.8f), new Vec2(2 * SCREEN_WIDTH, SCREEN_HEIGHT * 0.6f));
 	std::shared_ptr<LineCollider>  line2 = std::make_shared<LineCollider>(
-		new Vec2(-1.5 * SCREEN_WIDTH, SCREEN_HEIGHT * 2.1f), new Vec2(2.5 * SCREEN_WIDTH, SCREEN_HEIGHT * 2.1f));
+		new Vec2(-10.5 * SCREEN_WIDTH, SCREEN_HEIGHT * 0.75f), new Vec2(20.5 * SCREEN_WIDTH, SCREEN_HEIGHT * 0.75f));
 	std::shared_ptr<RampCollider>  ramp = std::make_shared<RampCollider>(
-		new Vec2(0.0f, SCREEN_HEIGHT * 2.1f-50), 50, Quadrant::IV);
+		new Vec2(1600.0f, SCREEN_HEIGHT * 0.75f-250), 250, Quadrant::IV);
 
 
-	mainLvl = std::make_shared<Level>();
 	mainLvl->spawn = Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
 	mainLvl->colliders.push_back(rectlu);
 	mainLvl->colliders.push_back(rectld);
@@ -185,8 +181,8 @@ void close()
 {
 	SDL_DestroyTexture(gTexture);
 	gTexture = nullptr;
-	SDL_FreeSurface(gBackImg);
-	gBackImg = nullptr;
+	SDL_FreeSurface(gTitleImg);
+	gTitleImg = nullptr;
 	SDL_FreeSurface(gSurf);
 	gSurf = nullptr;
 
@@ -271,17 +267,21 @@ void doAction(SDL_Event &event)
 float title_angle = 0.0f;
 void render()
 {
-	title_angle -= 0.5;
-	SDL_RenderClear(gRenderer);
-	boshiText.str("");
-	boshiText << TITLE_TEXT.substr(boshiSplit) << TITLE_TEXT.substr(0, boshiSplit);
-	titleFont->setText(boshiText.str());
-	titleFont->renderAt(0, 0, Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2), title_angle);
+	if (!boshiFlag)
+	{
+		title_angle -= 0.5;
+		SDL_RenderClear(gRenderer);
+		boshiText.str("");
+		boshiText << TITLE_TEXT.substr(boshiSplit) << TITLE_TEXT.substr(0, boshiSplit);
+		titleFont->setText(boshiText.str());
+		titleFont->renderAt(0, 0, Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2), title_angle);
+	}
 
-	if (boshiFlag)
+	else
 	{
 		Vec2 orig = cam.getOrigin();
 		Vec2 off = Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+		mainLvl->renderBackground();
 		Boshi->render(gRenderer, orig, off, cam.theta, cam.rx, cam.ry);
 		int yw = yoshiKart->getWidth() / 2;
 		int yh = yoshiKart->getHeight() / 2;
@@ -292,6 +292,7 @@ void render()
 		yoshiKart->renderAt(Vec2(SCREEN_WIDTH - yw - orig.x, SCREEN_HEIGHT - yh - orig.y), off, cam.theta, cam.rx, cam.ry);
 		yoshiKart->toggleFlip(SDL_FLIP_HORIZONTAL);
 		yoshiKart->sync(true);
+		mainLvl->renderForeground(orig, off, Vec2(cam.rx, cam.ry));
 	}
 
 	if ((debug & DEBUG_INFO) == DEBUG_INFO) { renderText(Boshi.get(), debugFont); }

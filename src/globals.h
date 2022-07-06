@@ -13,7 +13,9 @@ namespace glob
 	const std::string TITLE_TEXT = "BOOOSHI ROOOLL!! ";
 
 	//Resource paths
-	const std::string BACKGROUND_IMG = "resources/images/background.bmp";
+	const std::string TITLE_IMG = "resources/images/title.bmp";
+	const std::string BACKGROUND_IMG = "resources/images/background.png";
+	const std::string FOREGROUND_IMG = "resources/images/foreground.png";
 	const std::string BOSHI_IMG = "resources/images/boshi.png";
 	const std::string BOSHI_IMG_BMP = "resources/images/boshi.bmp";
 	const std::string YOSHI_KART = "resources/images/yoshi_kart.bmp";
