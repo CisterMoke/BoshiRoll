@@ -8,6 +8,7 @@
 #include "Entity.h"
 #include "Player.h"
 #include "FontSprite.h"
+#include "RenderCommands.h"
 
 enum DebugMode
 {
@@ -16,6 +17,5 @@ enum DebugMode
 	DEBUG_DRAW = 0x2,
 	DEBUG_ALL = 0x3,
 };
-void drawCollider(SDL_Renderer *renderer, BaseCollider *collider, Camera *cam, const Vec2 &offset, const SDL_Color &color = SDL_Color(180, 0, 180));
-void renderText(Entity *e, FontSprite *font);
+void push_entity_info_render_command(Entity *e, FontSprite *font);
 

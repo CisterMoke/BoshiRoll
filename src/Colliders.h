@@ -2,6 +2,8 @@
 #include <math.h>
 #include <SDL.h>
 #include<SDL2_gfxPrimitives.h>
+#include "RenderCommands.h"
+#include "Camera.h"
 #include "Vec2.h"
 #include "Mat22.h"
 #include "Quadrant.h"
@@ -12,11 +14,12 @@ struct BaseCollider
 {
 	BaseCollider() = default;
 	virtual ~BaseCollider() {};
-	bool virtual checkCollision(CircleCollider &c, Vec2 *cptr = nullptr) = 0;
-	Vec2 virtual collisionDisp(CircleCollider &c, Vec2 *cptr = nullptr) = 0;
-	void virtual draw(SDL_Renderer *renderer, const SDL_Color &color,
-		const Vec2 &orig = Vec2(0.0f, 0.0f), Vec2 const &off = Vec2(0.0f, 0.0f), const Mat22 &T = I) = 0;
+	bool virtual check_collision(CircleCollider &c, Vec2 *cptr = nullptr) = 0;
+	Vec2 virtual collision_disp(CircleCollider &c, Vec2 *cptr = nullptr) = 0;
+	virtual BaseRenderCommand *create_cmd(Camera *camera = nullptr, SDL_Color color = {180, 0, 180}) = 0;
 };
+
+
 
 struct CircleCollider : public BaseCollider
 {
@@ -27,11 +30,10 @@ struct CircleCollider : public BaseCollider
 	CircleCollider(Vec2 *p, float radius);
 	CircleCollider(float x, float y, float radius);
 	~CircleCollider();
-	bool checkCollision(CircleCollider &c, Vec2 *cptr = nullptr);
-	Vec2 collisionDisp(CircleCollider &c, Vec2 *cptr = nullptr);
-	Vec2 antiCollisionDisp(CircleCollider &c, Vec2 *cptr = nullptr);
-	void draw(SDL_Renderer *renderer, SDL_Color const &color,
-		const Vec2 &orig = Vec2(0.0f, 0.0f), Vec2 const &off = Vec2(0.0f, 0.0f), const Mat22 &T = I);
+	bool check_collision(CircleCollider &c, Vec2 *cptr = nullptr);
+	Vec2 collision_disp(CircleCollider &c, Vec2 *cptr = nullptr);
+	Vec2 anti_collision_disp(CircleCollider &c, Vec2 *cptr = nullptr);
+	virtual BaseRenderCommand *create_cmd(Camera *camera = nullptr, SDL_Color color = { 180, 0, 180 });
 };
 
 struct LineCollider : public BaseCollider
@@ -41,10 +43,9 @@ struct LineCollider : public BaseCollider
 	LineCollider();
 	LineCollider(Vec2 *start, Vec2 *stop);
 	~LineCollider();
-	bool checkCollision(CircleCollider &c, Vec2 *cptr = nullptr);
-	Vec2 collisionDisp(CircleCollider &c, Vec2 *cptr = nullptr);
-	void draw(SDL_Renderer *renderer, SDL_Color const &color,
-		const Vec2 &orig = Vec2(0.0f, 0.0f), Vec2 const &off = Vec2(0.0f, 0.0f), const Mat22 &T = I);
+	bool check_collision(CircleCollider &c, Vec2 *cptr = nullptr);
+	Vec2 collision_disp(CircleCollider &c, Vec2 *cptr = nullptr);
+	virtual BaseRenderCommand *create_cmd(Camera *camera = nullptr, SDL_Color color = { 180, 0, 180 });
 };
 
 struct RectCollider : public BaseCollider
@@ -56,12 +57,11 @@ struct RectCollider : public BaseCollider
 	RectCollider(Vec2 *p, float width, float height);
 	RectCollider(float x, float y, float width, float height);
 	~RectCollider();
-	bool checkCollision(CircleCollider &c, Vec2 *cptr = nullptr);
-	bool checkCollision(RectCollider &r);
-	Vec2 collisionDisp(CircleCollider &c, Vec2 *cptr = nullptr);
-	Vec2 collisionDisp(RectCollider &r);
-	void draw(SDL_Renderer *renderer, SDL_Color const &color,
-		const Vec2 &orig = Vec2(0.0f, 0.0f), Vec2 const &off = Vec2(0.0f, 0.0f), const Mat22 &T = I);
+	bool check_collision(CircleCollider &c, Vec2 *cptr = nullptr);
+	bool check_collision(RectCollider &r);
+	Vec2 collision_disp(CircleCollider &c, Vec2 *cptr = nullptr);
+	Vec2 collision_disp(RectCollider &r);
+	virtual BaseRenderCommand *create_cmd(Camera *camera = nullptr, SDL_Color color = { 180, 0, 180 });
 };
 
 struct RampCollider : public BaseCollider
@@ -77,8 +77,7 @@ struct RampCollider : public BaseCollider
 	RampCollider(Vec2 *p, float size, Quadrant quadrant);
 	RampCollider(float x, float y, float size, Quadrant quadrant);
 	~RampCollider();
-	bool checkCollision(CircleCollider &c, Vec2 *cptr = nullptr);
-	Vec2 collisionDisp(CircleCollider &c, Vec2 *cptr = nullptr);
-	void draw(SDL_Renderer *renderer, SDL_Color const &color,
-		const Vec2 &orig = Vec2(0.0f, 0.0f), Vec2 const &off = Vec2(0.0f, 0.0f), const Mat22 &T = I);
+	bool check_collision(CircleCollider &c, Vec2 *cptr = nullptr);
+	Vec2 collision_disp(CircleCollider &c, Vec2 *cptr = nullptr);
+	virtual BaseRenderCommand *create_cmd(Camera *camera = nullptr, SDL_Color color = { 180, 0, 180 });
 };

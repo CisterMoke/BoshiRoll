@@ -3,10 +3,10 @@
 Entity::Entity(std::string spritePath, float zoom, int mode)
 {
 	sprite = new BaseSprite();
-	sprite->loadFromFile(spritePath, mode);
+	sprite->load_from_file(spritePath, mode);
 	sprite->zoom(zoom, zoom);
 	theta = &sprite->theta;
-	collider = new CircleCollider(pos, sprite->getWidth()/2);
+	collider = new CircleCollider(pos, sprite->get_width()/2);
 }
 Entity::Entity(std::string spritePath, Vec2 &pos, float zoom, int mode)
 	:Entity(spritePath, zoom, mode)
@@ -39,13 +39,13 @@ void Entity::stop()
 	omega = 0.0f;
 	r_force = 0.0f;
 }
-void Entity::applyVelocities()
+void Entity::apply_velocities()
 {
 	teleport(*vel);
 	rotate(omega);
 }
 
-void Entity::applyForces()
+void Entity::apply_forces()
 {
 	*vel += *t_force/mass;
 	*t_force = Vec2(0.0f, 0.0f);
@@ -56,11 +56,6 @@ void Entity::applyForces()
 
 void Entity::update()
 {
-	applyForces();
-	applyVelocities();
-}
-
-void Entity::render(SDL_Renderer *renderer, Vec2 const &orig, Vec2 const &offset, float phi, float zx, float zy)
-{
-	sprite->renderAt(*pos - orig, offset, phi, zx, zy);
+	apply_forces();
+	apply_velocities();
 }

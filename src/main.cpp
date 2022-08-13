@@ -17,6 +17,7 @@
 #include "Level.h"
 #include "Game.h"
 #include "Camera.h"
+#include "Renderer.h"
 using namespace glob;
 
 
@@ -31,35 +32,37 @@ enum Orientation
 
 //Main gameloop functions
 bool init();
-bool loadMedia();
+bool load_media();
 void close();
 
 //Main surfaces and textures
-SDL_Window *glob::gWindow = nullptr;
-SDL_Renderer *glob::gRenderer = nullptr;
-SDL_Surface *glob::gScreen = nullptr;
-SDL_Surface *gTitleImg = nullptr;
-SDL_Texture *gTitleText = nullptr;
+SDL_Window *glob::g_window = nullptr;
+SDL_Renderer *glob::g_renderer = nullptr;
+SDL_Surface *glob::g_screen = nullptr;
+SDL_Surface *g_title_img = nullptr;
+SDL_Texture *g_title_text = nullptr;
 
-SDL_Surface *gSurf = nullptr;
-SDL_Texture *gTexture = nullptr;
+SDL_Surface *g_surf = nullptr;
+SDL_Texture *g_texture = nullptr;
 
-SDL_Surface *gBoshiSurfs[ORIENT_TOTAL];
-SDL_Texture *gBoshiTexts[ORIENT_TOTAL];
-AnimSprite *yoshiKart = new AnimSprite();
-FontSprite *titleFont;
-FontSprite *debugFont;
+SDL_Surface *g_boshi_surfs[ORIENT_TOTAL];
+SDL_Texture *g_boshi_texts[ORIENT_TOTAL];
+Renderer renderer;
+AnimSprite *yoshi_kart = new AnimSprite();
+AnimSprite *yoshi_kart2 = nullptr;
+FontSprite *title_font;
+FontSprite *debug_font;
 
-std::shared_ptr<Player> Boshi;
-std::shared_ptr<Level> mainLvl;
+std::shared_ptr<Player> boshi;
+std::shared_ptr<Level> main_lvl;
 Game game;
 Camera cam = Camera();
 SDL_Color collor = { 180, 0, 180 };
 DebugMode debug = DEBUG_ALL;
 
-bool boshiFlag = true;
+bool boshi_flag = true;
 std::stringstream boshiText;
-int boshiSplit = 0;
+int boshi_split = 0;
 
 bool init()
 {
@@ -71,25 +74,25 @@ bool init()
 	}
 
 	//Create window
-	gWindow = SDL_CreateWindow("BoshiRoll", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL);
-	if (gWindow == NULL)
+	g_window = SDL_CreateWindow("BoshiRoll", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL);
+	if (g_window == NULL)
 	{
 		std::cout << "Window could not be created!" << SDL_GetError() << "\n";
 		return false;
 	}
 	//Create renderer for window
-	gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED);
-	if (gRenderer == NULL)
+	g_renderer = SDL_CreateRenderer(g_window, -1, SDL_RENDERER_ACCELERATED);
+	if (g_renderer == NULL)
 	{
 		printf("Renderer could not be created! SDL Error: %s\n", SDL_GetError());
 		return false;
 	}
 	//Initialize renderer color
-	SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+	SDL_SetRenderDrawColor(g_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 
 	// Init png loading
-	int imgFlags = IMG_INIT_PNG;
-	if (!(IMG_Init(imgFlags) & imgFlags))
+	int img_flags = IMG_INIT_PNG;
+	if (!(IMG_Init(img_flags) & img_flags))
 	{
 		std::cout << "SDL_image could not initialize! SDL_image Error: " << IMG_GetError() << "\n";
 		return false;
@@ -100,15 +103,15 @@ bool init()
 		printf("TTF_Init: %s\n", TTF_GetError());
 		return false;
 	}
-
-	gScreen = SDL_GetWindowSurface(gWindow);
-	SDL_FillRect(gScreen, NULL, SDL_MapRGB(gScreen->format, 0xFF, 0xFF, 0xFF));
-	SDL_UpdateWindowSurface(gWindow);
-	mainLvl = std::make_shared<Level>();
+	renderer.renderer = g_renderer;
+	g_screen = SDL_GetWindowSurface(g_window);
+	SDL_FillRect(g_screen, NULL, SDL_MapRGB(g_screen->format, 0xFF, 0xFF, 0xFF));
+	SDL_UpdateWindowSurface(g_window);
+	main_lvl = std::make_shared<Level>();
 	return true;
 }
 
-TTF_Font *loadFont(std::string path, int size)
+TTF_Font *load_font(std::string path, int size)
 {
 	TTF_Font *font = TTF_OpenFont(path.c_str(), size);
 	if (font == NULL)
@@ -119,25 +122,27 @@ TTF_Font *loadFont(std::string path, int size)
 	return font;
 }
 
-bool loadMedia()
+bool load_media()
 {
-	mainLvl->setBackground(BACKGROUND_IMG);
-	mainLvl->setForeground(FOREGROUND_IMG);
-	yoshiKart->loadFromFile(YOSHI_KART, { 32, 32 }, ALPHA | COLORKEY);
-	yoshiKart->zoom(3, 3);
-	gTitleImg = loadSurface(TITLE_IMG);
-	if (gTitleImg == NULL)
+	main_lvl->set_background(BACKGROUND_IMG, Vec2(640.0f/2880*1.5f, 480.0f/1920*1.5f));
+	main_lvl->set_foreground(FOREGROUND_IMG, Vec2(0.5f, 0.5f));
+	yoshi_kart->load_from_file(YOSHI_KART, { 32, 32 }, ALPHA | COLORKEY);
+	yoshi_kart->zoom(3, 3);
+	yoshi_kart2 = new AnimSprite(*yoshi_kart);
+	yoshi_kart2->flip(SDL_FLIP_HORIZONTAL);
+	g_title_img = load_surface(TITLE_IMG);
+	if (g_title_img == NULL)
 	{
 		return false;
 	}
 
-	gTitleText = SDL_CreateTextureFromSurface(gRenderer, gTitleImg);
-	SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 0 );
+	g_title_text = SDL_CreateTextureFromSurface(g_renderer, g_title_img);
+	SDL_SetRenderDrawColor(g_renderer, 255, 255, 255, 0 );
 
-	titleFont = new FontSprite(loadFont(COMIC_FONT_BOLD, 54));
-	titleFont->setColor({ 22, 26, 255 });
+	title_font = new FontSprite(load_font(COMIC_FONT_BOLD, 54));
+	title_font->set_color({ 22, 26, 255 });
 
-	debugFont = new FontSprite(loadFont(COMIC_FONT_BOLD, 16));
+	debug_font = new FontSprite(load_font(COMIC_FONT_BOLD, 16));
 
 
 	return true;
@@ -146,13 +151,13 @@ bool loadMedia()
 void loadGame()
 {
 	std::shared_ptr<RectCollider>  rectlu = std::make_shared<RectCollider>(
-		new Vec2(0.0f, 0.0f), yoshiKart->getWidth(), yoshiKart->getHeight());
+		new Vec2(0.0f, 0.0f), yoshi_kart->get_width(), yoshi_kart->get_height());
 	std::shared_ptr<RectCollider>  rectld = std::make_shared<RectCollider>(
-		new Vec2(0.0f, SCREEN_HEIGHT - yoshiKart->getHeight()), yoshiKart->getWidth(), yoshiKart->getHeight());
+		new Vec2(0.0f, SCREEN_HEIGHT - yoshi_kart->get_height()), yoshi_kart->get_width(), yoshi_kart->get_height());
 	std::shared_ptr<RectCollider>  rectru = std::make_shared<RectCollider>(
-		new Vec2(SCREEN_WIDTH - yoshiKart->getWidth(), 0.0f), yoshiKart->getWidth(), yoshiKart->getHeight());
+		new Vec2(SCREEN_WIDTH - yoshi_kart->get_width(), 0.0f), yoshi_kart->get_width(), yoshi_kart->get_height());
 	std::shared_ptr<RectCollider>  rectrd = std::make_shared<RectCollider>(
-		new Vec2(SCREEN_WIDTH - yoshiKart->getWidth(), SCREEN_HEIGHT - yoshiKart->getHeight()), yoshiKart->getWidth(), yoshiKart->getHeight());
+		new Vec2(SCREEN_WIDTH - yoshi_kart->get_width(), SCREEN_HEIGHT - yoshi_kart->get_height()), yoshi_kart->get_width(), yoshi_kart->get_height());
 	std::shared_ptr<LineCollider>  line = std::make_shared<LineCollider>(
 		new Vec2(-SCREEN_WIDTH, SCREEN_HEIGHT * 0.8f), new Vec2(2 * SCREEN_WIDTH, SCREEN_HEIGHT * 0.6f));
 	std::shared_ptr<LineCollider>  line2 = std::make_shared<LineCollider>(
@@ -161,35 +166,34 @@ void loadGame()
 		new Vec2(1600.0f, SCREEN_HEIGHT * 0.75f-250), 250, Quadrant::IV);
 
 
-	mainLvl->spawn = Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
-	mainLvl->colliders.push_back(rectlu);
-	mainLvl->colliders.push_back(rectld);
-	mainLvl->colliders.push_back(rectru);
-	mainLvl->colliders.push_back(rectrd);
-	//mainLvl->colliders.push_back(line);
-	mainLvl->colliders.push_back(line2);
-	mainLvl->colliders.push_back(ramp);
+	main_lvl->spawn = Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+	main_lvl->colliders.push_back(rectlu);
+	main_lvl->colliders.push_back(rectld);
+	main_lvl->colliders.push_back(rectru);
+	main_lvl->colliders.push_back(rectrd);
+	//main_lvl->colliders.push_back(line);
+	main_lvl->colliders.push_back(line2);
+	main_lvl->colliders.push_back(ramp);
 
-	Boshi = std::make_shared<Player>(BOSHI_IMG_BMP, 0.3, 0x03);
-	*Boshi->pos = mainLvl->spawn;
-	game = Game(Boshi, mainLvl);
-	cam.setOrigin(*Boshi->pos);
-	cam.rx = 0.5, cam.ry = 0.5;
+	boshi = std::make_shared<Player>(BOSHI_IMG_BMP, 0.3, 0x03);
+	game = Game(boshi, main_lvl);
+	game.camera = &cam;
+	game.init();
 }
 
 void close()
 {
-	SDL_DestroyTexture(gTexture);
-	gTexture = nullptr;
-	SDL_FreeSurface(gTitleImg);
-	gTitleImg = nullptr;
-	SDL_FreeSurface(gSurf);
-	gSurf = nullptr;
+	SDL_DestroyTexture(g_texture);
+	g_texture = nullptr;
+	SDL_FreeSurface(g_title_img);
+	g_title_img = nullptr;
+	SDL_FreeSurface(g_surf);
+	g_surf = nullptr;
 
-	SDL_DestroyRenderer(gRenderer);
-	SDL_DestroyWindow(gWindow);
-	gWindow = nullptr;
-	gRenderer = nullptr;
+	SDL_DestroyRenderer(g_renderer);
+	SDL_DestroyWindow(g_window);
+	g_window = nullptr;
+	g_renderer = nullptr;
 
 	//Quit SDL subsystems
 	IMG_Quit();
@@ -200,17 +204,18 @@ void tic(unsigned int *t) { *t = SDL_GetTicks(); }
 
 unsigned int toc(unsigned int *t) { return SDL_GetTicks() - *t; }
 
-void doAction(SDL_Event &event)
+void do_action(SDL_Event &event)
 {
 	if (event.type == SDL_KEYDOWN)
 	{
 		switch (event.key.keysym.sym)
 		{
 		case SDLK_SPACE:
-			boshiFlag = !boshiFlag;
-			if (boshiFlag)
+			boshi_flag = !boshi_flag;
+			cam.theta = 0;
+			if (boshi_flag)
 			{
-				yoshiKart->setFrame(0);
+				yoshi_kart->set_frame(0);
 			}
 			break;
 
@@ -234,8 +239,8 @@ void doAction(SDL_Event &event)
 			break;
 
 		case SDLK_r:
-			*Boshi->pos = Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
-			Boshi->stop();
+			*boshi->pos = Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+			boshi->stop();
 			break;
 		case SDLK_F3:
 			if (debug == DEBUG_OFF) { debug = DEBUG_ALL; }
@@ -258,74 +263,78 @@ void doAction(SDL_Event &event)
 
 	}
 
-	if (boshiFlag)
+	if (boshi_flag)
 	{
-		Boshi->doAction(event);
+		boshi->do_action(event);
 	}
 }
 
 float title_angle = 0.0f;
 void render()
 {
-	if (!boshiFlag)
+	if (!boshi_flag)
 	{
-		title_angle -= 0.5;
-		SDL_RenderClear(gRenderer);
+		title_font->rotate_tot(1.5f);
+		SDL_RenderClear(g_renderer);
 		boshiText.str("");
-		boshiText << TITLE_TEXT.substr(boshiSplit) << TITLE_TEXT.substr(0, boshiSplit);
-		titleFont->setText(boshiText.str());
-		titleFont->renderAt(0, 0, Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2), title_angle);
+		boshiText << TITLE_TEXT.substr(boshi_split) << TITLE_TEXT.substr(0, boshi_split);
+		title_font->set_text(boshiText.str());
+		render_command_pool.push_back(new RenderSpriteCommand<FontSprite>(title_font, NULL, Vec2(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)));
 	}
 
 	else
 	{
-		Vec2 orig = cam.getOrigin();
+		Vec2 orig = cam.get_origin();
 		Vec2 off = Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
-		mainLvl->renderBackground();
-		Boshi->render(gRenderer, orig, off, cam.theta, cam.rx, cam.ry);
-		int yw = yoshiKart->getWidth() / 2;
-		int yh = yoshiKart->getHeight() / 2;
-		yoshiKart->renderAt(Vec2(yw - orig.x, yh - orig.y), off, cam.theta, cam.rx, cam.ry);
-		yoshiKart->renderAt(Vec2(yw - orig.x, SCREEN_HEIGHT - yh - orig.y), off, cam.theta, cam.rx, cam.ry);
-		yoshiKart->toggleFlip(SDL_FLIP_HORIZONTAL);
-		yoshiKart->renderAt(Vec2(SCREEN_WIDTH - yw - orig.x, yh - orig.y), off, cam.theta, cam.rx, cam.ry);
-		yoshiKart->renderAt(Vec2(SCREEN_WIDTH - yw - orig.x, SCREEN_HEIGHT - yh - orig.y), off, cam.theta, cam.rx, cam.ry);
-		yoshiKart->toggleFlip(SDL_FLIP_HORIZONTAL);
-		yoshiKart->sync(true);
-		mainLvl->renderForeground(orig, off, Vec2(cam.rx, cam.ry));
+		int yw = yoshi_kart->get_width() / 2;
+		int yh = yoshi_kart->get_height() / 2;
+		render_command_pool.push_back(new RenderSpriteCommand<AnimSprite>(yoshi_kart, &cam, Vec2(yw, yh)));
+		render_command_pool.push_back(new RenderSpriteCommand<AnimSprite>(yoshi_kart, &cam, Vec2(yw,glob::SCREEN_HEIGHT - yh)));
+		render_command_pool.push_back(new RenderSpriteCommand<AnimSprite>(yoshi_kart2, &cam, Vec2(glob::SCREEN_WIDTH - yw, yh)));
+		render_command_pool.push_back(new RenderSpriteCommand<AnimSprite>(yoshi_kart2, &cam, Vec2(glob::SCREEN_WIDTH - yw, glob::SCREEN_HEIGHT - yh)));
+		game.push_render_commands();
 	}
 
-	if ((debug & DEBUG_INFO) == DEBUG_INFO) { renderText(Boshi.get(), debugFont); }
+	//renderer.renderAll();
+
 	if ((debug & DEBUG_DRAW) == DEBUG_DRAW)
 	{
-		for (auto collider : mainLvl->colliders)
+		for (auto collider : main_lvl->colliders)
 		{
-			drawCollider(gRenderer, collider.get(), &cam, Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2));
+			render_command_pool.push_back(collider->create_cmd(&cam));
 		}
-		drawCollider(gRenderer, Boshi->collider, &cam, Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2));
-		if (Boshi->tongue->getState() != TongueState::IDLE)
+
+		render_command_pool.push_back(boshi->collider->create_cmd(&cam));
+
+		if (boshi->tongue->get_state() != TongueState::IDLE)
 		{
-			drawCollider(gRenderer, Boshi->tongue->parts[0]->collider, &cam, Vec2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2));
+			render_command_pool.push_back(boshi->tongue->parts[0]->collider->create_cmd(&cam));
 		}
 	}
-	SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 255);
-	SDL_RenderPresent(gRenderer);
+
+	if ((debug & DEBUG_INFO) == DEBUG_INFO) {
+		push_entity_info_render_command(boshi.get(), debug_font);
+	}
+	renderer.render_all();
+
+	SDL_SetRenderDrawColor(g_renderer, 255, 255, 255, 255);
+	SDL_RenderPresent(g_renderer);
 }
 
 int main(int argc, char *argv[])
 {
 	bool quit = false;
 	SDL_Event e;
-	unsigned int *renderTimer = new unsigned int(0);
-	unsigned int *gameTimer = new unsigned int(0);
-	unsigned int *boshiTimer = new unsigned int(0);
-	tic(renderTimer);
-	tic(gameTimer);
-	tic(boshiTimer);
+	unsigned int *render_timer = new unsigned int(0);
+	unsigned int *game_timer = new unsigned int(0);
+	unsigned int *boshi_timer = new unsigned int(0);
+	tic(render_timer);
+	tic(game_timer);
+	tic(boshi_timer);
 
 	SDL_SetMainReady();
 	init();
-	if (!loadMedia())
+	if (!load_media())
 	{
 		std::cout << "Failed to load media!\n";
 		return 0;
@@ -342,22 +351,22 @@ int main(int argc, char *argv[])
 			}
 			else 
 			{
-				doAction(e);
+				do_action(e);
 			}
 		}
-		if (toc(boshiTimer) / 1000.0 > 5.0 / FPS)
+		if (toc(boshi_timer) / 1000.0 > 5.0 / FPS)
 		{
-			tic(boshiTimer);
-			boshiSplit = (boshiSplit + 1) % TITLE_TEXT.length();
+			tic(boshi_timer);
+			boshi_split = (boshi_split + 1) % TITLE_TEXT.length();
 		}
-		if (toc(renderTimer) / 1000.0 > 1.0/FPS)
+		if (toc(render_timer) / 1000.0 > 1.0/FPS)
 		{
-			tic(renderTimer);
+			tic(render_timer);
 			render();
 		}
-		if (toc(gameTimer) / 1000.0 > 1.0 / GAMETICKS)
+		if (toc(game_timer) / 1000.0 > 1.0 / GAMETICKS)
 		{
-			tic(gameTimer);
+			tic(game_timer);
 			game.tick();
 		}
 	}

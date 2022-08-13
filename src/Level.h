@@ -17,13 +17,12 @@ public:
 	Level();
 	~Level();
 
-	bool setBackground(std::string path, int mode = 0);
-	bool setForeground(std::string path, int mode = ALPHA);
-	void renderBackground();
-	void renderForeground(Vec2 orig, Vec2 off, Vec2 zoom);
+	BaseSprite *get_background();
+	BaseSprite *get_foreground();
+	bool set_background(std::string path, Vec2 zoom = { 1.0f, 1.0f }, int mode = 0);
+	bool set_foreground(std::string path, Vec2 zoom = { 1.0f, 1.0f }, int mode = ALPHA);
 
 private:
-	void renderScenery(BaseSprite *scenery, Vec2 orig, Vec2 off, float depth, Vec2 zoom = Vec2(1.0f, 1.0f));
 	BaseSprite *background;
 	BaseSprite *foreground;
 

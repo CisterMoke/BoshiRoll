@@ -31,7 +31,7 @@ namespace glob
 	const int GAMETICKS = 120;
 
 	//SDL stuff
-	extern SDL_Window *gWindow;
-	extern SDL_Renderer *gRenderer;
-	extern SDL_Surface *gScreen;
+	extern SDL_Window *g_window;
+	extern SDL_Renderer *g_renderer;
+	extern SDL_Surface *g_screen;
 }

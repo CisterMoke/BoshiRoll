@@ -47,6 +47,14 @@ add_library(level OBJECT
     ${CMAKE_CURRENT_SOURCE_DIR}/Level.cpp
     )
 
+add_library(rendering OBJECT
+    
+    ${CMAKE_CURRENT_SOURCE_DIR}/RenderCommands.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Renderer.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/RenderCommands.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Renderer.cpp)
+
+
 set(Headers
     ${CMAKE_CURRENT_SOURCE_DIR}/debug.h
     ${CMAKE_CURRENT_SOURCE_DIR}/globals.h

@@ -31,24 +31,24 @@ class Tongue
 
 	TongueState state = TongueState::IDLE;
 
-	void correctPos();
-	void correctAngles();
+	void correct_pos();
+	void correct_angles();
 
-	void reelOut();
-	void reelIn();
+	void reel_out();
+	void reel_in();
 
 public:
 	std::array<Entity *, 12> parts{};
-	BaseSprite *tongueEnd;
+	BaseSprite *tongue_end;
 
 	Tongue(Vec2 *origin);
 	~Tongue();
 
-	TongueState getState();
-	Entity* getTip();
-	int getReel();
+	TongueState get_state();
+	Entity* get_tip();
+	int get_reel();
 
-	Vec2 springForce(Vec2 &disp, Vec2 &vel, float m, bool half);
+	Vec2 spring_force(Vec2 &disp, Vec2 &vel, float m, bool half);
 
 	void shoot(Vec2 const &dir, Vec2 const &r_vel);
 	void release();
@@ -57,9 +57,8 @@ public:
 	void idle();
 	void teleport(Vec2 &v);
 	void push(Vec2 &f);
-	void applyGravity(float g);
+	void apply_gravity(float g);
 	void update();
-	void render(SDL_Renderer *renderer, Vec2 const &orig = Vec2(0.0f, 0.0f), Vec2 const &offset = Vec2(0.0f, 0.0f), float phi = 0.0f, float zx = 1.0f, float zy = 1.0f);
 
 };
 

@@ -4,34 +4,124 @@ FontSprite::FontSprite(TTF_Font *font)
 	: _font(font)
 {
 	texture_cache.fill(nullptr);
-	setText(" ");
-	TTF_SizeText(_font, "A", nullptr, &linespace);
+	set_text(" ");
+	TTF_SizeText(_font.get(), "A", nullptr, &linespace);
 }
 
-void FontSprite::setText(std::string text)
+FontSprite::FontSprite(const FontSprite &other): BaseSprite(other)
+{
+	txt = other.txt;
+	offsets = other.offsets;
+	substrings = other.substrings;
+	colr = other.colr;
+	_font = other._font;
+	tabsize = other.tabsize;
+	linespace = other.linespace;
+	texture_cache = other.texture_cache;
+	curr_offset = other.curr_offset; curr_char = other.curr_char;
+	cursor = other.cursor;
+	w_tot = other.w_tot, h_tot = other.h_tot;
+}
+
+void FontSprite::set_text(std::string text)
 {
 	txt = text;
-	parseText(text);
+	parse_text(text);
 	populate_cache();
 }
 
-void FontSprite::setColor(SDL_Color color)
+void FontSprite::set_color(SDL_Color color)
 {
 	colr = color;
 	clear_cache();
 	populate_cache();
 }
 
-void FontSprite::setFont(TTF_Font *font)
+void FontSprite::set_font(TTF_Font *font)
 {
-	_font = font;
+	_font = std::shared_ptr<TTF_Font>(font);
 	clear_cache();
-	linespace = TTF_SizeText(_font, "A", nullptr, &linespace);
+	linespace = TTF_SizeText(_font.get(), "A", nullptr, &linespace);
 	populate_cache();
 }
 
-void FontSprite::parseText(std::string txt)
+void FontSprite::set_tot_theta(float angle)
 {
+	tot_theta = angle;
+}
+
+void FontSprite::rotate_tot(float angle)
+{
+	tot_theta += angle;
+}
+
+void FontSprite::start_iter()
+{
+	curr_offset = 0; curr_char = 0;
+	char c = substrings[curr_offset][curr_char];
+	texture = texture_cache[c]->first;
+	Vec2 dims = texture_cache[c]->second;
+	w = dims.x; h = dims.y;
+	cursor = Vec2(0.0f, 0.0f);
+}
+
+bool FontSprite::next_iter()
+{
+	if (curr_char < 0 || curr_offset < 0) { return false; }
+	if (curr_offset == std::max((int) offsets.size() - 1, 0) && curr_char == std::max((int)substrings[curr_offset].size() - 1, 0)) { return false; }
+
+	// Update to transform based on tot_theta.
+	cursor.x += w;
+	if (substrings[curr_offset].size() == 0) { curr_char = 0; }
+	else { curr_char = ++curr_char % substrings[curr_offset].size(); }
+	if (curr_char == 0)
+	{
+		curr_offset = ++curr_offset % offsets.size();
+		cursor = offsets[curr_offset];
+	}
+	char c = substrings[curr_offset][curr_char];
+	texture = texture_cache[c]->first;
+	Vec2 dims = texture_cache[c]->second;
+	w = dims.x; h = dims.y;
+	return true;
+}
+
+Vec2 FontSprite::get_char_pos(bool center)
+{
+	Vec2 corr = center ? Vec2(w / 2, linespace - h / 2) : Vec2(0.0f, linespace - h);
+	return ((cursor + corr - Vec2(w_tot/2, h_tot/2)) * get_cursor_transform() + Vec2(w_tot / 2, h_tot / 2)) * Vec2(scale_x, scale_y);
+}
+
+int FontSprite::get_tot_width()
+{
+	return w_tot * scale_x;
+}
+
+
+int FontSprite::get_tot_height()
+{
+	return h_tot * scale_y;
+}
+
+float FontSprite::get_tot_theta()
+{
+	return tot_theta;
+}
+
+float FontSprite::get_theta()
+{
+	return theta + tot_theta;
+}
+
+Mat22 FontSprite::get_cursor_transform()
+{
+	float phi = -tot_theta * M_PI / 180.0f;
+	return rotMat(phi);
+}
+
+void FontSprite::parse_text(std::string txt)
+{
+	curr_offset = 0; curr_char = 0;
 	int tabs = 0;
 	int newlines = 0;
 	for (char c : txt)
@@ -76,56 +166,58 @@ void FontSprite::parseText(std::string txt)
 	}
 }
 
-void FontSprite::createCharTexture(char c)
+void FontSprite::create_char_texture(char c)
 {
 	if (_font == nullptr) { return; }
-	SDL_FreeSurface(baseSurf);
 	if (c == 32)
 	{
 		c = 45;
-		baseSurf = TTF_RenderText_Solid(_font, &c, colr);
-		texture = nullptr;
+		base_surf.reset(TTF_RenderText_Solid(_font.get(), &c, colr), SDL_FreeSurface);
+		texture.reset();
 	}
 	else
 	{
-		baseSurf = TTF_RenderText_Solid(_font, &c, colr);
-		texture = SDL_CreateTextureFromSurface(gRenderer, baseSurf);
+		base_surf.reset(TTF_RenderText_Solid(_font.get(), &c, colr), SDL_FreeSurface);
+		texture.reset(SDL_CreateTextureFromSurface(g_renderer, base_surf.get()), SDL_DestroyTexture);
 	}
-	w = baseSurf->w;
-	h = baseSurf->h;
+	w = base_surf->w;
+	h = base_surf->h;
 }
 
-bool FontSprite::loadFromFile(std::string path, int mode)
+bool FontSprite::load_from_file(std::string path, int mode)
 {
-	return BaseSprite::loadFromFile(path, mode);
+	return BaseSprite::load_from_file(path, mode);
 }
 
 void FontSprite::populate_cache()
 {
-	int tot_w = offsets[offsets.size() - 1].x;
+	int tot_w = 0;
 	int tot_h = offsets[offsets.size() - 1].y + linespace;
+
+	texture_cache[0] = new std::pair<std::shared_ptr<SDL_Texture>, Vec2>{ std::shared_ptr<SDL_Texture>(), Vec2() };
 
 	for (int i = 0; i < substrings.size(); i++)
 	{
+		int linewidth = 0;
 		std::string sub = substrings[i];
 		for (char c : sub)
 		{
-			if (0 < c < 128)
+			if (0 < c && c < 128)
 			{
 				if (texture_cache[c] == nullptr)
 				{
-					createCharTexture(c);
-					texture_cache[c] = new std::pair<SDL_Texture *, Vec2>{ texture, Vec2(w, h) };
+					create_char_texture(c);
+					texture_cache[c] = new std::pair<std::shared_ptr<SDL_Texture>, Vec2>{ texture, Vec2(w, h) };
 				}
-				if (i == substrings.size() - 1) { tot_w += texture_cache[c]->second.x; }
+				linewidth += texture_cache[c]->second.x;
 			}
 		}
+		if (linewidth + offsets[i].x > tot_w) { tot_w = linewidth + offsets[i].x; }
 	}
-	SDL_FreeSurface(baseSurf);
-	baseSurf = nullptr;
-	texture = nullptr;
-	w = tot_w;
-	h = tot_h;
+	base_surf.reset();
+	texture.reset();
+	w_tot = tot_w;
+	h_tot = tot_h;
 }
 
 void FontSprite::clear_cache()
@@ -134,57 +226,8 @@ void FontSprite::clear_cache()
 	{
 		if (texture_cache[i] != nullptr)
 		{
-			SDL_DestroyTexture(texture_cache[i]->first);
-			delete texture_cache[i];
-			texture_cache[i] = nullptr;
+			texture_cache[i]->first.reset();
 		}
 	}
-	texture = nullptr;
-}
-
-void FontSprite::renderAtLU(int x, int y, Vec2 const &off, float phi, float zx, float zy, SDL_Rect *clip)
-{
-	Vec2 cursor;
-	int tot_w = w, tot_h = h;
-
-	for (int i = 0; i < offsets.size(); i++)
-	{
-		cursor = Vec2(x, y) + offsets[i];
-		for (char c : substrings[i])
-		{
-			texture = texture_cache[c]->first;
-			Vec2 dims = texture_cache[c]->second;
-			w = dims.x, h = dims.y;
-			cursor.y += linespace - h;
-			BaseSprite::renderAtLU(cursor, off, phi, zx, zy, clip);
-			cursor.y = y + offsets[i].y;
-			cursor.x += w;
-		}
-	}
-	w = tot_w, h = tot_h;
-}
-
-void FontSprite::renderAt(int x, int y, Vec2 const &off, float phi, float zx, float zy, SDL_Rect *clip)
-{
-	Vec2 cursor;
-	int tot_w = w, tot_h = h;
-	x -= getWidth() / 2;
-	y -= getHeight() / 2;
-
-	for (int i = 0; i < offsets.size(); i++)
-	{
-		cursor = Vec2(x, y) + offsets[i];
-		for (char c : substrings[i])
-		{
-			texture = texture_cache[c]->first;
-			Vec2 dims = texture_cache[c]->second;
-			w = dims.x, h = dims.y;
-			cursor.y += linespace - h / 2;
-			cursor.x += w / 2;
-			BaseSprite::renderAt(cursor, off, phi, zx, zy, clip);
-			cursor.y = y + offsets[i].y;
-			cursor.x += w - w/2;
-		}
-	}
-	w = tot_w, h = tot_h;
+	texture.reset();
 }

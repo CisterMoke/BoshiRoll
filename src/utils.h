@@ -7,6 +7,6 @@
 #include "globals.h"
 
 
-SDL_Surface *loadSurface(std::string path, SDL_PixelFormatEnum pixelFormat = SDL_PIXELFORMAT_RGB888);
+SDL_Surface *load_surface(std::string path, SDL_PixelFormatEnum pixelFormat = SDL_PIXELFORMAT_RGB888);
 
-SDL_Texture *loadTexture(std::string path, SDL_PixelFormatEnum pixelFormat = SDL_PIXELFORMAT_RGB888);
+SDL_Texture *load_texture(std::string path, SDL_PixelFormatEnum pixelFormat = SDL_PIXELFORMAT_RGB888);

@@ -5,6 +5,8 @@
 #include "Colliders.h"
 #include "Player.h"
 #include "Level.h"
+#include "RenderCommands.h"
+#include "Sprites.h"
 
 using glob::GAMETICKS;
 
@@ -13,6 +15,7 @@ class Game
 public:
 	std::shared_ptr<Player> player;
 	std::shared_ptr<Level> currLevel;
+	Camera *camera;
 	bool paused = false;
 	bool over = false;
 
@@ -30,14 +33,16 @@ public:
 	Game(std::shared_ptr<Player> player, std::shared_ptr<Level> level);
 	~Game();
 
+	void init();
 	void tick();
+	void push_render_commands();
 
 private:
-	bool checkCollisions();
-	void applyAirFriction(Entity &e);
-	void applyRollingFriction(Entity &e, float grip);
-	float calculateGrip(float Fn, float sigma = -1.0f);
-	float slipRatio(Entity &e, Vec2 &dir);
-	float tractionForce(float slip, float grip);
+	bool check_collisions();
+	void apply_air_friction(Entity &e);
+	void apply_rolling_friction(Entity &e, float grip);
+	float calculate_grip(float Fn, float sigma = -1.0f);
+	float slip_ratio(Entity &e, Vec2 &dir);
+	float traction_force(float slip, float grip);
 };
 

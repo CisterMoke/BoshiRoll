@@ -5,7 +5,7 @@ Quadrant operator+ (int i, Quadrant q) { return q + i; }
 Quadrant operator- (Quadrant q, int i) { return q + (-i); }
 Quadrant operator- (int i, Quadrant q) { return q + (-i); }
 
-Quadrant toQuad(Vec2 v)
+Quadrant to_quad(Vec2 v)
 {
 	if (v.x >= 0 && v.y <= 0) { return Quadrant::I; }
 	else if (v.x >= 0 && v.y > 0) { return Quadrant::II; }
@@ -13,7 +13,7 @@ Quadrant toQuad(Vec2 v)
 	else { return Quadrant::IV; }
 }
 
-Vec2 toVec(Quadrant q)
+Vec2 to_vec(Quadrant q)
 {
 	switch (q)
 	{

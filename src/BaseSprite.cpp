@@ -1,29 +1,38 @@
 #include "BaseSprite.h"
-using glob::gRenderer;
+using glob::g_renderer;
 
 BaseSprite::BaseSprite() = default;
 
-BaseSprite::~BaseSprite()
+BaseSprite::BaseSprite(const BaseSprite & other)
 {
-	clearMem();
+	base_surf = other.base_surf;
+	texture = other.texture;
+
+	w = other.w; h = other.h; theta = other.theta; scale_x = other.scale_x, scale_y = other.scale_y;
+	_flip = other._flip;
 }
 
-bool BaseSprite::loadFromFile(std::string path, int mode)
+BaseSprite::~BaseSprite()
+{
+	clear_mem();
+}
+
+bool BaseSprite::load_from_file(std::string path, int mode)
 {
 	reset();
 
-	baseSurf = loadSurface(path, SDL_PIXELFORMAT_RGBA8888);
-	if (baseSurf == NULL)
+	base_surf = std::shared_ptr<SDL_Surface>(load_surface(path, SDL_PIXELFORMAT_RGBA8888), SDL_FreeSurface);
+	if (base_surf == NULL)
 	{
 		return false;
 	}
 
-	w = baseSurf->w;
-	h = baseSurf->h;
+	w = base_surf->w;
+	h = base_surf->h;
 
-	if ((mode & ALPHA) != ALPHA) { baseSurf = SDL_ConvertSurfaceFormat(baseSurf, SDL_PIXELFORMAT_RGB888, 0); }
-	if ((mode & COLORKEY) == COLORKEY) { SDL_SetColorKey(baseSurf, SDL_TRUE, SDL_MapRGB(baseSurf->format, 0xFF, 0x0, 0xFF)); }
-	texture = SDL_CreateTextureFromSurface(gRenderer, baseSurf);
+	if ((mode & ALPHA) != ALPHA) { base_surf = std::shared_ptr<SDL_Surface>(SDL_ConvertSurfaceFormat(base_surf.get(), SDL_PIXELFORMAT_RGB888, 0), SDL_FreeSurface); }
+	if ((mode & COLORKEY) == COLORKEY) { SDL_SetColorKey(base_surf.get(), SDL_TRUE, SDL_MapRGB(base_surf->format, 0xFF, 0x0, 0xFF)); }
+	texture = std::shared_ptr<SDL_Texture>(SDL_CreateTextureFromSurface(g_renderer, base_surf.get()), SDL_DestroyTexture);
 	if (texture == NULL)
 	{
 		return false;
@@ -31,14 +40,17 @@ bool BaseSprite::loadFromFile(std::string path, int mode)
 	return true;
 }
 
-int BaseSprite::getWidth() { return scale_x * w; }
-int BaseSprite::getHeight() { return scale_y * h; }
+int BaseSprite::get_width() { return scale_x * w; }
+int BaseSprite::get_height() { return scale_y * h; }
+float BaseSprite::get_theta() { return theta; }
+SDL_Texture *BaseSprite::get_texture() { return texture.get(); }
+SDL_RendererFlip BaseSprite::get_flip() { return _flip; }
 
 void BaseSprite::reset()
 {
-	clearMem();
+	clear_mem();
 	texture = nullptr;
-	baseSurf = nullptr;
+	base_surf = nullptr;
 	w = 0;
 	h = 0;
 	theta = 0.0;
@@ -49,20 +61,19 @@ void BaseSprite::reset()
 
 void BaseSprite::revert()
 {
-	w = baseSurf->w;
-	h = baseSurf->h;
+	w = base_surf->w;
+	h = base_surf->h;
 	theta = 0.0;
 	scale_x = 1.0;
 	scale_y = 1.0;
 	_flip = SDL_FLIP_NONE;
 
-	SDL_DestroyTexture(texture);
-	texture = SDL_CreateTextureFromSurface(gRenderer, baseSurf);
+	texture.reset(SDL_CreateTextureFromSurface(g_renderer, base_surf.get()), SDL_DestroyTexture);
 }
 
-void BaseSprite::setWidth(int width) { w = width; }
-void BaseSprite::setHeight(int height) { h = height; }
-void BaseSprite::setTheta(float angle) { theta = angle; }
+void BaseSprite::set_width(int width) { w = width; }
+void BaseSprite::set_height(int height) { h = height; }
+void BaseSprite::set_theta(float angle) { theta = angle; }
 void BaseSprite::zoom(float rx, float ry)
 {
 	scale_x  = rx;
@@ -70,47 +81,11 @@ void BaseSprite::zoom(float rx, float ry)
 }
 
 void BaseSprite::flip(SDL_RendererFlip f) { _flip = f; }
-void BaseSprite::toggleFlip(SDL_RendererFlip f) { _flip =(SDL_RendererFlip)(_flip ^ f); }
+void BaseSprite::toggle_flip(SDL_RendererFlip f) { _flip =(SDL_RendererFlip)(_flip ^ f); }
 void BaseSprite::rotate(float angle) { theta -= fmodf(angle, 360); }
 
-void BaseSprite::renderAtLU(int x, int y, Vec2 const &off, float phi, float zx, float zy, SDL_Rect *clip)
+void BaseSprite::clear_mem()
 {
-	Mat22 T = rotMat(-phi * M_PI / 180.0f) * zoomMat(zx, zy);
-	Vec2 lu = T * Vec2(x, y) + off;
-	float w_hat = getWidth() * zx;
-	float h_hat = getHeight() * zy;
-	SDL_Rect dest = { lu.x, lu.y, w_hat, h_hat };
-	_render(texture, clip, &dest, theta - phi, NULL);
-}
-
-void BaseSprite::renderAtLU(Vec2 const &pos, Vec2 const &off, float phi, float zx, float zy, SDL_Rect *clip)
-{
-	renderAtLU(pos.x, pos.y, off, phi, zx, zy, clip);
-}
-
-void BaseSprite::renderAt(int x, int y, Vec2 const &off, float phi, float zx, float zy, SDL_Rect *clip)
-{
-	Mat22 T = rotMat(-phi * M_PI / 180.0f) * zoomMat(zx, zy);
-	Vec2 center = T * Vec2(x, y) + off;
-	float w_hat = getWidth() * zx;
-	float h_hat = getHeight() * zy;
-	SDL_Rect dest = { center.x - w_hat / 2, center.y - h_hat / 2, w_hat, h_hat };
-	_render(texture, clip, &dest, theta-phi, NULL);
-}
-
-void BaseSprite::renderAt(Vec2 const &pos, Vec2 const &off, float phi, float zx, float zy, SDL_Rect *clip)
-{
-	renderAt(pos.x, pos.y, off, phi, zx, zy, clip);
-}
-
-void BaseSprite::clearMem()
-{
-	SDL_FreeSurface(baseSurf);
-	SDL_DestroyTexture(texture);
-}
-
-
-void BaseSprite::_render(SDL_Texture* tex, SDL_Rect *src, SDL_Rect *dst, float angle, SDL_Point *center)
-{
-	SDL_RenderCopyEx(gRenderer, tex, src, dst, angle, center, _flip);
+	base_surf.reset();
+	texture.reset();
 }

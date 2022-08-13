@@ -11,5 +11,5 @@ Quadrant operator+ (int i, Quadrant q);
 Quadrant operator- (Quadrant q, int i);
 Quadrant operator- (int i, Quadrant q);
 
-Quadrant toQuad(Vec2 v);
-Vec2 toVec(Quadrant q);
+Quadrant to_quad(Vec2 v);
+Vec2 to_vec(Quadrant q);

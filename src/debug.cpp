@@ -1,11 +1,6 @@
 #include "debug.h"
 
-void drawCollider(SDL_Renderer *renderer, BaseCollider *collider, Camera *cam, const Vec2 &offset, const SDL_Color &color)
-{
-	collider->draw(renderer, color, cam->getOrigin(), offset, cam->getTransform());
-}
-
-void renderText(Entity *e, FontSprite *font)
+void push_entity_info_render_command(Entity *e, FontSprite *font)
 {
 	int x = 5;
 	int y = 5;
@@ -17,10 +12,11 @@ void renderText(Entity *e, FontSprite *font)
 	s << std::setprecision(4) << "Tforce: " << *e->t_force << "\t\t\t\t\t" << "Rforce: " << e->r_force << "\n";
 	if (Player* p = static_cast<Player*>(e); p != nullptr)
 	{
-		s << "Reel: " << p->tongue->getReel();
+		s << "Reel: " << p->tongue->get_reel();
 	}
 	
-	font->setText(s.str());
-	font->renderAtLU(x, y);
+	font->set_text(s.str());
+	render_command_pool.push_back(new RenderSpriteCommand<FontSprite>(font, nullptr, Vec2(x, y), false));
+	//font->renderAtLU(x, y);
 
 }

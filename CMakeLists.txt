@@ -41,6 +41,7 @@ target_link_libraries(${PROJECT_NAME}
 		colliders
 		entities
 		level
+		rendering
 		)
 
 add_custom_command(TARGET BoshiRoll POST_BUILD

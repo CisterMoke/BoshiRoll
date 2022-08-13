@@ -6,41 +6,26 @@ Level::Level()
 
 Level::~Level() {}
 
-bool Level::setBackground(std::string path, int mode)
+BaseSprite *Level::get_background()
 {
-	return background->loadFromFile(path, mode);
+	return background;
 }
 
-bool Level::setForeground(std::string path, int mode)
+BaseSprite *Level::get_foreground()
 {
-	return foreground->loadFromFile(path, mode);
+	return foreground;
 }
 
-void Level::renderBackground()
+bool Level::set_background(std::string path, Vec2 zoom, int mode)
 {
-	renderScenery(background, Vec2(0.0f, 0.0f), Vec2(0.0f, 0.0f), 0.0f);
+	bool success = background->load_from_file(path, mode);
+	background->zoom(zoom.x, zoom.y);
+	return success;
 }
 
-void Level::renderForeground(Vec2 orig, Vec2 off, Vec2 zoom)
+bool Level::set_foreground(std::string path, Vec2 zoom, int mode)
 {
-	renderScenery(foreground, orig, off, 1.0f, zoom);
-}
-
-void Level::renderScenery(BaseSprite *scenery, Vec2 orig, Vec2 off, float depth, Vec2 zoom)
-{
-	float rx = glob::SCREEN_WIDTH / (float) scenery->getWidth();
-	float ry = glob::SCREEN_HEIGHT / (float) scenery->getHeight();
-	float h = glob::SCREEN_WIDTH * zoom.y;
-	float top = -orig.y * zoom.y * depth;
-	if (top > glob::SCREEN_HEIGHT - off.y || top + h < -off.y) { return; }
-	float w = glob::SCREEN_WIDTH * zoom.x;
-	float left = -orig.x * zoom.x * depth;
-	float right = left + w;
-	int start = -ceilf((off.x + left) / (w));
-	int stop = fmaxf(ceilf((glob::SCREEN_WIDTH - off.x - right) / (w)), start+1);
-	std::cout << "START: " << start << "\t|\tSTOP: " << stop << std::endl;
-	for (int i = start; i<=stop; i++)
-	{
-		scenery->renderAtLU((Vec2(i * glob::SCREEN_WIDTH, 0.0f) - orig) / Vec2(rx, ry) * depth, off, 0.0f, rx * zoom.x, ry * zoom.y);
-	}
+	bool success = foreground->load_from_file(path, mode);
+	foreground->zoom(zoom.x, zoom.y);
+	return success;
 }

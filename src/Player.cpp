@@ -15,11 +15,11 @@ Player::Player(std::string spritePath, float x, float y, float zoom, int mode)
 
 Player:: ~Player() { delete tongue; }
 
-void Player::doAction(SDL_Event &event)
+void Player::do_action(SDL_Event &event)
 {
 	if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_LEFT)
 	{
-		if (tongue->getState() == TongueState::IDLE)
+		if (tongue->get_state() == TongueState::IDLE)
 		{
 			Vec2 dir = Vec2(event.button.x - glob::SCREEN_WIDTH / 2, event.button.y - glob::SCREEN_HEIGHT / 2);
 			if (dir == Vec2(0.0f, 0.0f)) { dir = Vec2(1.0f, 0.0f); }
@@ -32,7 +32,7 @@ void Player::doAction(SDL_Event &event)
 	}
 	else if (event.type == SDL_MOUSEBUTTONUP && event.button.button == SDL_BUTTON_LEFT)
 	{
-		if (tongue->getState() != TongueState::RELEASED && tongue->getState() != TongueState::IDLE)
+		if (tongue->get_state() != TongueState::RELEASED && tongue->get_state() != TongueState::IDLE)
 		{
 			tongue->release();
 		}
@@ -53,29 +53,29 @@ void Player::doAction(SDL_Event &event)
 			break;
 
 		case SDLK_LEFT:
-			heldKey = SDLK_LEFT;
+			held_key = SDLK_LEFT;
 			break;
 
 		case SDLK_RIGHT:
-			heldKey = SDLK_RIGHT;
+			held_key = SDLK_RIGHT;
 			break;
 		}
 	}
 
 	else if (event.type == SDL_KEYUP)
 	{
-		if (event.key.keysym.sym == heldKey)
+		if (event.key.keysym.sym == held_key)
 		{
-			heldKey = SDLK_UNKNOWN;
+			held_key = SDLK_UNKNOWN;
 		}
 	}
 }
 
 void Player::update()
 {
-	if (heldKey)
+	if (held_key)
 	{
-		switch (heldKey)
+		switch (held_key)
 		{
 		case SDLK_LEFT:
 			r_force -= 0.2f * mass;
@@ -86,18 +86,12 @@ void Player::update()
 			break;
 		}
 	}
-	if (tongue->getState() == TongueState::ANCHORED)
+	if (tongue->get_state() == TongueState::ANCHORED)
 	{
-		Vec2 disp = *pos - *tongue->parts[tongue->getReel()]->pos;
-		Vec2 F = tongue->springForce(disp, *vel, mass, 0);
+		Vec2 disp = *pos - *tongue->parts[tongue->get_reel()]->pos;
+		Vec2 F = tongue->spring_force(disp, *vel, mass, 0);
 		push(F);
 	}
 	Entity::update();
 	tongue->update();
-}
-
-void Player::render(SDL_Renderer *renderer, Vec2 const &orig, Vec2 const &offset, float phi, float zx, float zy)
-{
-	Entity::render(renderer, orig, offset, phi, zx, zy);
-	tongue->render(renderer, orig, offset, phi, zx, zy);
 }

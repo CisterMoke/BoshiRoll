@@ -5,8 +5,8 @@ Tongue::Tongue(Vec2 *origin)
 {
 	parts[0] = new Entity(glob::TONGUE_TIP, *tip);
 	parts[0]->mass = s_mass;
-	tongueEnd = new BaseSprite();
-	tongueEnd->loadFromFile(glob::TONGUE_END);
+	tongue_end = new BaseSprite();
+	tongue_end->load_from_file(glob::TONGUE_END);
 	for (int i = 1; i < parts.size(); i++)
 	{
 		parts[i] = new Entity(glob::TONGUE_BODY, *new Vec2(origin->x, origin->y));
@@ -19,11 +19,11 @@ Tongue::~Tongue()
 	for (Entity *e : parts) { delete e; }
 }
 
-TongueState Tongue::getState() { return state; }
-Entity* Tongue::getTip() { return parts[0];  }
-int Tongue::getReel() { return reel;  }
+TongueState Tongue::get_state() { return state; }
+Entity* Tongue::get_tip() { return parts[0];  }
+int Tongue::get_reel() { return reel;  }
 
-Vec2 Tongue::springForce(Vec2 &disp, Vec2 &vel, float m, bool half)
+Vec2 Tongue::spring_force(Vec2 &disp, Vec2 &vel, float m, bool half)
 {
 	Vec2 norm;
 	if (disp == Vec2(0.0f, 0.0f)) { norm = Vec2(0.0f, 1.0f); }
@@ -79,7 +79,7 @@ void Tongue::idle()
 	state = TongueState::IDLE;
 }
 
-void Tongue::reelOut()
+void Tongue::reel_out()
 {
 	if (parts[reel]->pos->dist(*end) > rest_l && reel < parts.size()-1)
 	{
@@ -92,7 +92,7 @@ void Tongue::reelOut()
 	}
 }
 
-void Tongue::reelIn()
+void Tongue::reel_in()
 {
 	if (parts[reel]->pos->dist(*end) < shoot_speed)
 	{
@@ -130,7 +130,7 @@ void Tongue::push(Vec2 &f)
 	}
 }
 
-void Tongue::applyGravity(float g)
+void Tongue::apply_gravity(float g)
 {
 	if (state == TongueState::ANCHORED)
 	{
@@ -142,14 +142,14 @@ void Tongue::applyGravity(float g)
 	}
 }
 
-void Tongue::correctPos()
+void Tongue::correct_pos()
 {
 	Vec2 off = *origin - *end;
 	teleport(off);
 	*end = *origin;
 }
 
-void Tongue::correctAngles()
+void Tongue::correct_angles()
 {
 	Vec2 dir;
 	float angle;
@@ -162,7 +162,7 @@ void Tongue::correctAngles()
 	}
 	dir = *parts[reel]->pos - *end;
 	angle = atan2f(dir.y, dir.x);
-	tongueEnd->setTheta(angle * 180.0f / M_PI);
+	tongue_end->set_theta(angle * 180.0f / M_PI);
 }
 
 void Tongue::update()
@@ -184,11 +184,11 @@ void Tongue::update()
 	case TongueState::SHOT:
 		*end = *origin;
 		max_i = reel;
-		reelOut();
+		reel_out();
 		if (state != TongueState::RELEASED) { break; } // Fall through if released released in this step.
 	case TongueState::RELEASED:
-		correctPos();
-		reelIn();
+		correct_pos();
+		reel_in();
 		min_i = 0;
 		max_i = reel;
 		break;
@@ -200,34 +200,22 @@ void Tongue::update()
 			if (i == 0)
 			{
 				Vec2 d_down = *parts[i]->pos - *parts[i + 1]->pos;
-				parts[i]->push(springForce(d_down, *parts[i]->vel, s_mass, 0));
+				parts[i]->push(spring_force(d_down, *parts[i]->vel, s_mass, 0));
 			}
 			else if (i == reel)
 			{
 				Vec2 d_up = *parts[i]->pos - *parts[i - 1]->pos;
 				Vec2 d_down = *parts[i]->pos - *end;
-				parts[i]->push(springForce(d_up, *parts[i]->vel, s_mass, 1) + springForce(d_down, *parts[i]->vel, s_mass, 1));
+				parts[i]->push(spring_force(d_up, *parts[i]->vel, s_mass, 1) + spring_force(d_down, *parts[i]->vel, s_mass, 1));
 			}
 			else
 			{
 				Vec2 d_up = *parts[i]->pos - *parts[i - 1]->pos;
 				Vec2 d_down = *parts[i]->pos - *parts[i + 1]->pos;
-				parts[i]->push(springForce(d_up, *parts[i]->vel, s_mass, 1) + springForce(d_down, *parts[i]->vel, s_mass, 1));
+				parts[i]->push(spring_force(d_up, *parts[i]->vel, s_mass, 1) + spring_force(d_down, *parts[i]->vel, s_mass, 1));
 			}
 		}
 		for (Entity *e : parts) { e->update(); }
-		correctAngles();
-	}
-}
-
-void Tongue::render(SDL_Renderer *renderer, Vec2 const &orig, Vec2 const &offset, float phi, float zx, float zy)
-{
-	if (state != TongueState::IDLE)
-	{
-		for (int i = 0; i < reel + 1; i++)
-		{
-			parts[i]->render(renderer, orig, offset, phi, zx, zy);
-		}
-		tongueEnd->renderAt(*end - orig, offset, phi, zx, zy);
+		correct_angles();
 	}
 }
