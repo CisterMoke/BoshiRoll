@@ -17,6 +17,7 @@ class BaseSprite
 	friend class Entity;
 public:
 	BaseSprite();
+	BaseSprite(std::string path, int mode = ALPHA | COLORKEY);
 	BaseSprite(const BaseSprite &other);
 	~BaseSprite();
 

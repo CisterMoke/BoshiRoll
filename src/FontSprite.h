@@ -8,12 +8,12 @@
 #include <vector>
 #include "BaseSprite.h"
 #include "Mat22.h"
-using namespace glob;
 class FontSprite: public BaseSprite
 {
 public:
 
 	FontSprite(TTF_Font *font);
+	FontSprite(std::string text, std::string path, int size, SDL_Color color = {0, 0, 0});
 	FontSprite(const FontSprite &other);
 
 	void set_text(std::string text);
@@ -54,3 +54,4 @@ private:
 	void parse_text(std::string txt);
 };
 
+TTF_Font *load_font(std::string path, int size);

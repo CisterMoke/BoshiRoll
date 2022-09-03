@@ -2,36 +2,45 @@
 #include <string>
 #include <SDL.h>
 #include <SDL_ttf.h>
+#include "DebugMode.h"
 #define BREAKPOINT __nop()
-namespace glob
+
+struct  glob
 {
 	//Screen dimension constants
-	const int SCREEN_WIDTH = 640;
-	const int SCREEN_HEIGHT = 480;
+	static const int SCREEN_WIDTH;
+	static const int SCREEN_HEIGHT;
 
 	//Strings
-	const std::string TITLE_TEXT = "BOOOSHI ROOOLL!! ";
+	static const std::string TITLE_TEXT;
 
 	//Resource paths
-	const std::string TITLE_IMG = "resources/images/title.bmp";
-	const std::string BACKGROUND_IMG = "resources/images/background.png";
-	const std::string FOREGROUND_IMG = "resources/images/foreground.png";
-	const std::string BOSHI_IMG = "resources/images/boshi.png";
-	const std::string BOSHI_IMG_BMP = "resources/images/boshi.bmp";
-	const std::string YOSHI_KART = "resources/images/yoshi_kart.bmp";
-	const std::string TONGUE_TIP = "resources/images/tongue_tip.bmp";
-	const std::string TONGUE_BODY = "resources/images/tongue_body.bmp";
-	const std::string TONGUE_END = "resources/images/tongue_end.bmp";
-	const std::string COMIC_FONT = "resources/fonts/comic.ttf";
-	const std::string COMIC_FONT_BOLD = "resources/fonts/comicbd.ttf";
-	const std::string COMIC_FONT_ITALIC = "resources/fonts/comici.ttf";
+	static const std::string TITLE_IMG;
+	static const std::string BACKGROUND_IMG;
+	static const std::string FOREGROUND_IMG;
+	static const std::string BOSHI_IMG;
+	static const std::string BOSHI_IMG_BMP;
+	static const std::string YOSHI_KART;
+	static const std::string TONGUE_TIP;
+	static const std::string TONGUE_BODY;
+	static const std::string TONGUE_END;
+	static const std::string BUTTON_UP;
+	static const std::string BUTTON_OVER;
+	static const std::string BUTTON_DOWN;
+	static const std::string COMIC_FONT;
+	static const std::string COMIC_FONT_BOLD;
+	static const std::string COMIC_FONT_ITALIC;
+
 
 	//Timers
-	const int FPS = 60;
-	const int GAMETICKS = 120;
+	static const int FPS;
+	static const int GAMETICKS;
 
 	//SDL stuff
-	extern SDL_Window *g_window;
-	extern SDL_Renderer *g_renderer;
-	extern SDL_Surface *g_screen;
-}
+	static SDL_Window *g_window;
+	static SDL_Renderer *g_renderer;
+	static SDL_Surface *g_screen;
+
+	//Debug config
+	static DebugMode DEBUG_MODE;
+};

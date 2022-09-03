@@ -20,7 +20,11 @@ find_package(SDL2_image REQUIRED)
 find_package(SDL2_gfx REQUIRED)
 find_package(SDL2_ttf REQUIRED)
 
-add_executable(${PROJECT_NAME} ${SRC_DIR}/main.cpp)
+if(NOT DEFINED ENV{MAIN_CPP})
+	set(ENV{MAIN_CPP} main.cpp)
+endif()
+
+add_executable(${PROJECT_NAME} ${SRC_DIR}/$ENV{MAIN_CPP})
 
 include_directories(
 	${SDL2_INCLUDE_DIRS}
@@ -33,7 +37,8 @@ add_subdirectory(${SRC_DIR})
 target_link_libraries(${PROJECT_NAME}
 	PUBLIC
 		SDL2::Main
-		SDL2::Image SDL2::GFX
+		SDL2::Image
+		SDL2::GFX
 		SDL2::TTF
 		algebra
 		sprites
@@ -42,6 +47,8 @@ target_link_libraries(${PROJECT_NAME}
 		entities
 		level
 		rendering
+		menus
+		debugging
 		)
 
 add_custom_command(TARGET BoshiRoll POST_BUILD

@@ -1,11 +1,18 @@
 #include "FontSprite.h"
 
 FontSprite::FontSprite(TTF_Font *font)
-	: _font(font)
+	: _font(font, TTF_CloseFont)
 {
 	texture_cache.fill(nullptr);
 	set_text(" ");
 	TTF_SizeText(_font.get(), "A", nullptr, &linespace);
+}
+
+FontSprite::FontSprite(std::string text, std::string path, int size, SDL_Color color)
+	: FontSprite(load_font(path, size))
+{
+	colr = color;
+	set_text(text);
 }
 
 FontSprite::FontSprite(const FontSprite &other): BaseSprite(other)
@@ -178,7 +185,7 @@ void FontSprite::create_char_texture(char c)
 	else
 	{
 		base_surf.reset(TTF_RenderText_Solid(_font.get(), &c, colr), SDL_FreeSurface);
-		texture.reset(SDL_CreateTextureFromSurface(g_renderer, base_surf.get()), SDL_DestroyTexture);
+		texture.reset(SDL_CreateTextureFromSurface(glob::g_renderer, base_surf.get()), SDL_DestroyTexture);
 	}
 	w = base_surf->w;
 	h = base_surf->h;
@@ -230,4 +237,16 @@ void FontSprite::clear_cache()
 		}
 	}
 	texture.reset();
+}
+
+
+TTF_Font *load_font(std::string path, int size)
+{
+	TTF_Font *font = TTF_OpenFont(path.c_str(), size);
+	if (font == NULL)
+	{
+		std::cout << "Unable to load font " << path << std::endl;
+		return NULL;
+	}
+	return font;
 }

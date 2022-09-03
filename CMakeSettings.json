@@ -4,6 +4,27 @@
       "name": "x64-Debug",
       "generator": "Ninja",
       "configurationType": "Debug",
+      "environments": [
+        {
+          "MAIN_CPP": "main.cpp"
+        }
+      ],
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": ""
+    },
+    {
+      "name": "x64-Sandbox",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "environments": [
+        {
+          "MAIN_CPP": "sandbox.cpp"
+        }
+      ],
       "inheritEnvironments": [ "msvc_x64_x64" ],
       "buildRoot": "${projectDir}\\out\\build\\${name}",
       "installRoot": "${projectDir}\\out\\install\\${name}",

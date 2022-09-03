@@ -1,5 +1,4 @@
 #include "AnimSprite.h"
-using glob::g_renderer;
 
 
 AnimSprite::AnimSprite() = default;

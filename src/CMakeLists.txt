@@ -39,31 +39,47 @@ add_library(entities OBJECT
     )
 
 add_library(level OBJECT
-    ${CMAKE_CURRENT_SOURCE_DIR}/Anchor.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Camera.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Level.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Anchor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Camera.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Level.cpp
     )
 
 add_library(rendering OBJECT
-    
     ${CMAKE_CURRENT_SOURCE_DIR}/RenderCommands.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Renderer.h
     ${CMAKE_CURRENT_SOURCE_DIR}/RenderCommands.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Renderer.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/Renderer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/RenderCommands.tpp
+    )
+
+add_library(menus OBJECT
+    ${CMAKE_CURRENT_SOURCE_DIR}/BaseButtonAction.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ButtonActions.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Menu.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/MenuButton.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/MenuScreen.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Menu.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/MenuButton.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/MenuScreen.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ButtonActions.tpp
+    )
+
+add_library(debugging OBJECT
+    ${CMAKE_CURRENT_SOURCE_DIR}/debug.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/DebugMode.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/debug.cpp
+    )
 
 
 set(Headers
-    ${CMAKE_CURRENT_SOURCE_DIR}/debug.h
     ${CMAKE_CURRENT_SOURCE_DIR}/globals.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Game.h
     )
 
 set(Sources
-    ${CMAKE_CURRENT_SOURCE_DIR}/debug.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/globals.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Game.cpp
-)
+    )
 
 target_sources(${PROJECT_NAME} PRIVATE ${Headers} ${Sources})

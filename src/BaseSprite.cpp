@@ -1,7 +1,11 @@
 #include "BaseSprite.h"
-using glob::g_renderer;
 
 BaseSprite::BaseSprite() = default;
+
+BaseSprite::BaseSprite(std::string path, int mode)
+{
+	load_from_file(path, mode);
+}
 
 BaseSprite::BaseSprite(const BaseSprite & other)
 {
@@ -32,7 +36,7 @@ bool BaseSprite::load_from_file(std::string path, int mode)
 
 	if ((mode & ALPHA) != ALPHA) { base_surf = std::shared_ptr<SDL_Surface>(SDL_ConvertSurfaceFormat(base_surf.get(), SDL_PIXELFORMAT_RGB888, 0), SDL_FreeSurface); }
 	if ((mode & COLORKEY) == COLORKEY) { SDL_SetColorKey(base_surf.get(), SDL_TRUE, SDL_MapRGB(base_surf->format, 0xFF, 0x0, 0xFF)); }
-	texture = std::shared_ptr<SDL_Texture>(SDL_CreateTextureFromSurface(g_renderer, base_surf.get()), SDL_DestroyTexture);
+	texture = std::shared_ptr<SDL_Texture>(SDL_CreateTextureFromSurface(glob::g_renderer, base_surf.get()), SDL_DestroyTexture);
 	if (texture == NULL)
 	{
 		return false;
@@ -68,7 +72,7 @@ void BaseSprite::revert()
 	scale_y = 1.0;
 	_flip = SDL_FLIP_NONE;
 
-	texture.reset(SDL_CreateTextureFromSurface(g_renderer, base_surf.get()), SDL_DestroyTexture);
+	texture.reset(SDL_CreateTextureFromSurface(glob::g_renderer, base_surf.get()), SDL_DestroyTexture);
 }
 
 void BaseSprite::set_width(int width) { w = width; }

@@ -8,8 +8,6 @@
 #include "RenderCommands.h"
 #include "Sprites.h"
 
-using glob::GAMETICKS;
-
 class Game
 {
 public:
@@ -20,10 +18,10 @@ public:
 	bool over = false;
 
 	// Physics
-	float g = 12.0f / GAMETICKS;
-	float air_fric_t = 0.2f / GAMETICKS;
-	float air_fric_r = 0.5f / GAMETICKS;
-	float roll_fric = 0.1f / GAMETICKS;
+	float g = 12.0f / glob::GAMETICKS;
+	float air_fric_t = 0.2f / glob::GAMETICKS;
+	float air_fric_r = 0.5f / glob::GAMETICKS;
+	float roll_fric = 0.1f / glob::GAMETICKS;
 
 	float bounciness = 0.2f;
 
