@@ -20,16 +20,6 @@
 #include "Renderer.h"
 #include "Menu.h"
 
-
-enum Orientation
-{
-	UP,
-	DOWN,
-	LEFT,
-	RIGHT,
-	ORIENT_TOTAL,
-};
-
 //Main gameloop functions
 bool init();
 bool load_media();
@@ -42,24 +32,19 @@ SDL_Texture *g_title_text = nullptr;
 SDL_Surface *g_surf = nullptr;
 SDL_Texture *g_texture = nullptr;
 
-SDL_Surface *g_boshi_surfs[ORIENT_TOTAL];
-SDL_Texture *g_boshi_texts[ORIENT_TOTAL];
 Renderer renderer;
-AnimSprite *yoshi_kart = new AnimSprite();
-AnimSprite *yoshi_kart2 = nullptr;
 FontSprite *title_font;
 FontSprite *debug_font;
 
 std::unique_ptr<MainMenu> main_menu;
+std::unique_ptr<PauseMenu> pause_menu;
 
-std::shared_ptr<Player> boshi;
-std::shared_ptr<Level> main_lvl;
+std::shared_ptr<BaseSprite> boshi_sprite;
 std::unique_ptr<Game> game;
 Camera cam = Camera();
 SDL_Color collor = { 180, 0, 180 };
 
-bool boshi_flag = true;
-std::stringstream boshiText;
+std::stringstream title_text;
 int boshi_split = 0;
 
 bool init()
@@ -105,18 +90,11 @@ bool init()
 	glob::g_screen = SDL_GetWindowSurface(glob::g_window);
 	SDL_FillRect(glob::g_screen, NULL, SDL_MapRGB(glob::g_screen->format, 0xFF, 0xFF, 0xFF));
 	SDL_UpdateWindowSurface(glob::g_window);
-	main_lvl = std::make_shared<Level>();
 	return true;
 }
 
 bool load_media()
 {
-	main_lvl->set_background(glob::BACKGROUND_IMG, Vec2(640.0f/2880*1.5f, 480.0f/1920*1.5f));
-	main_lvl->set_foreground(glob::FOREGROUND_IMG, Vec2(0.5f, 0.5f));
-	yoshi_kart->load_from_file(glob::YOSHI_KART, { 32, 32 }, ALPHA | COLORKEY);
-	yoshi_kart->zoom(3, 3);
-	yoshi_kart2 = new AnimSprite(*yoshi_kart);
-	yoshi_kart2->flip(SDL_FLIP_HORIZONTAL);
 	g_title_img = load_surface(glob::TITLE_IMG);
 	if (g_title_img == NULL)
 	{
@@ -131,41 +109,15 @@ bool load_media()
 
 	debug_font = new FontSprite(load_font(glob::COMIC_FONT_BOLD, 16));
 
+	boshi_sprite = std::shared_ptr<BaseSprite>(new BaseSprite(glob::BOSHI_IMG_BMP));
+	boshi_sprite->zoom(0.5f, 0.5f);
 
 	return true;
 }
 
 void load_game()
 {
-	std::shared_ptr<RectCollider>  rectlu = std::make_shared<RectCollider>(
-		new Vec2(0.0f, 0.0f), yoshi_kart->get_width(), yoshi_kart->get_height());
-	std::shared_ptr<RectCollider>  rectld = std::make_shared<RectCollider>(
-		new Vec2(0.0f, glob::SCREEN_HEIGHT - yoshi_kart->get_height()), yoshi_kart->get_width(), yoshi_kart->get_height());
-	std::shared_ptr<RectCollider>  rectru = std::make_shared<RectCollider>(
-		new Vec2(glob::SCREEN_WIDTH - yoshi_kart->get_width(), 0.0f), yoshi_kart->get_width(), yoshi_kart->get_height());
-	std::shared_ptr<RectCollider>  rectrd = std::make_shared<RectCollider>(
-		new Vec2(glob::SCREEN_WIDTH - yoshi_kart->get_width(), glob::SCREEN_HEIGHT - yoshi_kart->get_height()), yoshi_kart->get_width(), yoshi_kart->get_height());
-	std::shared_ptr<LineCollider>  line = std::make_shared<LineCollider>(
-		new Vec2(-glob::SCREEN_WIDTH, glob::SCREEN_HEIGHT * 0.8f), new Vec2(2 * glob::SCREEN_WIDTH, glob::SCREEN_HEIGHT * 0.6f));
-	std::shared_ptr<LineCollider>  line2 = std::make_shared<LineCollider>(
-		new Vec2(-10.5 * glob::SCREEN_WIDTH, glob::SCREEN_HEIGHT * 0.75f), new Vec2(20.5 * glob::SCREEN_WIDTH, glob::SCREEN_HEIGHT * 0.75f));
-	std::shared_ptr<RampCollider>  ramp = std::make_shared<RampCollider>(
-		new Vec2(1600.0f, glob::SCREEN_HEIGHT * 0.75f-250), 250, Quadrant::IV);
-
-
-	main_lvl->spawn = Vec2(glob::SCREEN_WIDTH / 2, glob::SCREEN_HEIGHT / 2);
-	main_lvl->colliders.push_back(rectlu);
-	main_lvl->colliders.push_back(rectld);
-	main_lvl->colliders.push_back(rectru);
-	main_lvl->colliders.push_back(rectrd);
-	//main_lvl->colliders.push_back(line);
-	main_lvl->colliders.push_back(line2);
-	main_lvl->colliders.push_back(ramp);
-
-	boshi = std::make_shared<Player>(glob::BOSHI_IMG_BMP, 0.3, 0x03);
-	game.reset(new Game(boshi, main_lvl));
-	game->camera = &cam;
-	game->init();
+	game.reset(new Game(Player(boshi_sprite), Level::init_level(), cam));
 }
 
 void close()
@@ -196,19 +148,10 @@ void do_action(SDL_Event &event)
 	{
 		switch (event.key.keysym.sym)
 		{
-		case SDLK_SPACE:
-			boshi_flag = !boshi_flag;
-			cam.theta = 0;
-			if (boshi_flag)
-			{
-				yoshi_kart->set_frame(0);
-			}
-			break;
 
 		case SDLK_ESCAPE:
-			SDL_Event e;
-			e.type = SDL_QUIT;
-			SDL_PushEvent(&e);
+			game->pause();
+			break;
 
 		case SDLK_u:
 			cam.theta -= 5;
@@ -225,8 +168,8 @@ void do_action(SDL_Event &event)
 			break;
 
 		case SDLK_r:
-			*boshi->pos = Vec2(glob::SCREEN_WIDTH / 2, glob::SCREEN_HEIGHT / 2);
-			boshi->stop();
+			game->player->pos = Vec2(glob::SCREEN_WIDTH / 2, glob::SCREEN_HEIGHT / 2);
+			game->player->stop();
 			break;
 		case SDLK_F3:
 			if (glob::DEBUG_MODE == DEBUG_OFF) { glob::DEBUG_MODE = DEBUG_ALL; }
@@ -248,11 +191,7 @@ void do_action(SDL_Event &event)
 		}
 
 	}
-
-	if (boshi_flag)
-	{
-		boshi->do_action(event);
-	}
+	game->player->do_action(event);
 }
 
 float title_angle = 0.0f;
@@ -262,9 +201,9 @@ void render()
 	{
 		title_font->rotate_tot(1.5f);
 		SDL_RenderClear(glob::g_renderer);
-		boshiText.str("");
-		boshiText << glob::TITLE_TEXT.substr(boshi_split) << glob::TITLE_TEXT.substr(0, boshi_split);
-		title_font->set_text(boshiText.str());
+		title_text.str("");
+		title_text << glob::TITLE_TEXT.substr(boshi_split) << glob::TITLE_TEXT.substr(0, boshi_split);
+		title_font->set_text(title_text.str());
 		render_command_pool.push_back(new RenderSpriteCommand<FontSprite>(title_font, NULL, Vec2(glob::SCREEN_WIDTH/2, glob::SCREEN_HEIGHT/2)));
 		main_menu->push_render_cmds();
 		
@@ -274,31 +213,35 @@ void render()
 	{
 		Vec2 orig = cam.get_origin();
 		Vec2 off = Vec2(glob::SCREEN_WIDTH / 2, glob::SCREEN_HEIGHT / 2);
-		int yw = yoshi_kart->get_width() / 2;
-		int yh = yoshi_kart->get_height() / 2;
-		render_command_pool.push_back(new RenderSpriteCommand<AnimSprite>(yoshi_kart, &cam, Vec2(yw, yh)));
-		render_command_pool.push_back(new RenderSpriteCommand<AnimSprite>(yoshi_kart, &cam, Vec2(yw,glob::SCREEN_HEIGHT - yh)));
-		render_command_pool.push_back(new RenderSpriteCommand<AnimSprite>(yoshi_kart2, &cam, Vec2(glob::SCREEN_WIDTH - yw, yh)));
-		render_command_pool.push_back(new RenderSpriteCommand<AnimSprite>(yoshi_kart2, &cam, Vec2(glob::SCREEN_WIDTH - yw, glob::SCREEN_HEIGHT - yh)));
 		game->push_render_commands();
 
 		if ((glob::DEBUG_MODE & DEBUG_DRAW) == DEBUG_DRAW)
 		{
-			for (auto &collider : main_lvl->colliders)
+			for (auto &collider : game->currLevel->colliders)
 			{
 				render_command_pool.push_back(collider->create_cmd(&cam));
 			}
 
-			render_command_pool.push_back(boshi->collider->create_cmd(&cam));
-
-			if (boshi->tongue->get_state() != TongueState::IDLE)
+			for (auto &enemy : game->currLevel->enemies)
 			{
-				render_command_pool.push_back(boshi->tongue->parts[0]->collider->create_cmd(&cam));
+				render_command_pool.push_back(enemy->collider->create_cmd(&cam));
+			}
+
+			render_command_pool.push_back(game->player->collider->create_cmd(&cam));
+
+			if (game->player->get_tongue().get_state() != TongueState::IDLE)
+			{
+				render_command_pool.push_back(game->player->get_tongue().parts[0]->collider->create_cmd(&cam));
 			}
 		}
 
 		if ((glob::DEBUG_MODE & DEBUG_INFO) == DEBUG_INFO) {
-			push_entity_info_render_command(boshi.get(), debug_font);
+			push_entity_info_render_command(game->player.get(), debug_font);
+		}
+		
+		if (pause_menu != nullptr)
+		{
+			pause_menu->push_render_cmds();
 		}
 	}
 
@@ -351,7 +294,33 @@ int main(int argc, char *argv[])
 				}
 			}
 
-			else if (game->over)
+			else if (game->is_paused())
+			{
+				if (pause_menu == nullptr) {
+					pause_menu.reset(new PauseMenu());
+					pause_menu.reset(new PauseMenu());
+					pause_menu.reset(new PauseMenu());
+					pause_menu.reset(new PauseMenu());
+					pause_menu.reset(new PauseMenu());
+					pause_menu.reset(new PauseMenu());
+					pause_menu.reset(new PauseMenu());
+				}
+				pause_menu->handle_input(e);
+				if (pause_menu->get_game_resume())
+				{
+					pause_menu->close();
+					game->resume();
+					pause_menu.reset();
+				}
+				else if (!pause_menu->get_game_resume() && pause_menu->is_closed())
+				{
+					game.reset();
+					main_menu.reset(new MainMenu());
+					pause_menu.reset();
+				}
+			}
+
+			else if (game->is_over())
 			{
 				game.reset();
 				main_menu.reset(new MainMenu());

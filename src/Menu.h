@@ -27,6 +27,8 @@ public:
 	void handle_input(SDL_Event &e);
 	void push_render_cmds();
 
+	virtual ~Menu() = default;
+
 
 };
 
@@ -41,7 +43,7 @@ public:
 
 class PauseMenu : public Menu
 {
-	bool game_resume;
+	bool game_resume = false;
 	std::shared_ptr<MenuScreen> initialize_screens();
 public:
 	PauseMenu();

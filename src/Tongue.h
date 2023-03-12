@@ -14,6 +14,16 @@ enum class TongueState
 	RELEASED
 };
 
+class TonguePart : public Entity
+{
+public:
+	std::unique_ptr<CircleCollider> collider;
+	
+	TonguePart(std::shared_ptr<BaseSprite> sprite, const Vec2 &pos = Vec2(0.0f, 0.0f));
+	TonguePart(std::shared_ptr<BaseSprite> sprite, float x, float y);
+	~TonguePart() = default;
+};
+
 class Tongue
 {
 	Vec2 *tip = nullptr;
@@ -38,14 +48,13 @@ class Tongue
 	void reel_in();
 
 public:
-	std::array<Entity *, 12> parts{};
-	BaseSprite *tongue_end;
+	std::array<std::unique_ptr<TonguePart>, 12> parts{};
+	std::shared_ptr<BaseSprite> tongue_end;
 
 	Tongue(Vec2 *origin);
-	~Tongue();
 
 	TongueState get_state();
-	Entity* get_tip();
+	TonguePart &get_tip();
 	int get_reel();
 
 	Vec2 spring_force(Vec2 &disp, Vec2 &vel, float m, bool half);

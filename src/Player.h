@@ -1,21 +1,25 @@
 #pragma once
+#include <memory>
 #include "Entity.h"
 #include "Tongue.h"
-class Player :
-    public Entity
+#include "Vec2.h"
+
+class Player : public Entity
 {
 public:
-    Tongue *tongue;
+    std::unique_ptr<CircleCollider> collider;
 
-    Player(std::string sprite_path, float zoom = 1.0f, int mode = 0x01);
-    Player(std::string sprite_path, Vec2 &pos, float zoom = 1.0f, int mode = 0x01);
-    Player(std::string sprite_path, float x, float y, float zoom = 1.0f, int mode = 0x01);
-    ~Player();
+    Player(std::shared_ptr<BaseSprite> sprite, const Vec2 &pos = Vec2(0.0f, 0.0f));
+    Player(std::shared_ptr<BaseSprite> sprite, float x, float y);
+    Player(const Player &other);
+
+    Tongue &get_tongue();
 
     void do_action(SDL_Event &event);
     void update();
 
 private:
     SDL_KeyCode held_key = SDLK_UNKNOWN;
+    std::unique_ptr<Tongue> tongue;
 };
 

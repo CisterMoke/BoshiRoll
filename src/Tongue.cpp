@@ -1,26 +1,34 @@
 #include "Tongue.h"
 
+TonguePart::TonguePart(std::shared_ptr<BaseSprite> sprite, const Vec2 &pos)
+	:Entity(sprite, pos), collider(new CircleCollider(std::shared_ptr<Vec2>(&this->pos, [](Vec2 *) {}), sprite->get_width() / 2)) {}
+
+TonguePart::TonguePart(std::shared_ptr<BaseSprite> sprite, float x, float y)
+	: TonguePart(sprite, Vec2(x, y)) {}
+
 Tongue::Tongue(Vec2 *origin)
-	: tip(new Vec2(*origin)), end(new Vec2(*origin)), origin(origin)
+	: end(new Vec2(*origin)), origin(origin)
 {
-	parts[0] = new Entity(glob::TONGUE_TIP, *tip);
+	std::shared_ptr<BaseSprite> tip_sprite(new BaseSprite(glob::TONGUE_TIP));
+	BaseSprite body_sprite = BaseSprite(glob::TONGUE_BODY);
+	parts[0] = std::unique_ptr<TonguePart>(new TonguePart(tip_sprite, *new Vec2(*origin)));
 	parts[0]->mass = s_mass;
-	tongue_end = new BaseSprite();
-	tongue_end->load_from_file(glob::TONGUE_END);
+	tip = &parts[0]->pos;
+	tongue_end = std::shared_ptr<BaseSprite>(new BaseSprite(glob::TONGUE_END));
 	for (int i = 1; i < parts.size(); i++)
 	{
-		parts[i] = new Entity(glob::TONGUE_BODY, *new Vec2(origin->x, origin->y));
+		parts[i] = std::unique_ptr<TonguePart>(
+			new TonguePart(
+				std::shared_ptr<BaseSprite>(new BaseSprite(body_sprite)),
+				*new Vec2(*origin)
+				)
+			);
 		parts[i]->mass = s_mass;
 	}
 }
 
-Tongue::~Tongue()
-{
-	for (Entity *e : parts) { delete e; }
-}
-
 TongueState Tongue::get_state() { return state; }
-Entity* Tongue::get_tip() { return parts[0];  }
+TonguePart &Tongue::get_tip() { return *parts[0];  }
 int Tongue::get_reel() { return reel;  }
 
 Vec2 Tongue::spring_force(Vec2 &disp, Vec2 &vel, float m, bool half)
@@ -40,7 +48,7 @@ void Tongue::shoot(Vec2 const &dir, Vec2 const &r_vel)
 	reel = 0;
 	Vec2 shoot_dir = dir.normalize();
 	Vec2 vel = shoot_dir * shoot_speed;
-	*parts[0]->vel = vel + shoot_dir * r_vel.dot(shoot_dir);
+	parts[0]->vel = vel + shoot_dir * r_vel.dot(shoot_dir);
 	state = TongueState::SHOT;
 }
 
@@ -50,10 +58,10 @@ void Tongue::release()
 	{
 		parts[i]->stop();
 	}
-	Vec2 return_dir = *end - *parts[reel]->pos;
+	Vec2 return_dir = *end - parts[reel]->pos;
 	return_dir = return_dir.normalize();
 	Vec2 vel = return_dir * shoot_speed;
-	*parts[reel]->vel = vel;
+	parts[reel]->vel = vel;
 	state = TongueState::RELEASED;
 }
 
@@ -71,20 +79,20 @@ void Tongue::anchor(Vec2 &pos)
 
 void Tongue::idle()
 {
-	for (Entity *e : parts)
+	for (auto &e : parts)
 	{
 		e->stop();
-		*e->pos = *origin;
+		e->pos = *origin;
 	}
 	state = TongueState::IDLE;
 }
 
 void Tongue::reel_out()
 {
-	if (parts[reel]->pos->dist(*end) > rest_l && reel < parts.size()-1)
+	if (parts[reel]->pos.dist(*end) > rest_l && reel < parts.size()-1)
 	{
-		*parts[++reel]->pos = *end;
-		*parts[reel]->vel = *parts[0]->vel;
+		parts[++reel]->pos = *end;
+		parts[reel]->vel = parts[0]->vel;
 	}
 	else if (tip->dist(*end) > rest_l * parts.size())
 	{
@@ -94,7 +102,7 @@ void Tongue::reel_out()
 
 void Tongue::reel_in()
 {
-	if (parts[reel]->pos->dist(*end) < shoot_speed)
+	if (parts[reel]->pos.dist(*end) < shoot_speed)
 	{
 		if (reel == 0)
 		{
@@ -104,11 +112,11 @@ void Tongue::reel_in()
 		else
 		{
 			parts[reel--]->stop();
-			Vec2 return_dir = *end - *parts[reel]->pos;
+			Vec2 return_dir = *end - parts[reel]->pos;
 			return_dir = return_dir.normalize();
 			Vec2 vel = return_dir * shoot_speed;
 			parts[reel]->stop();
-			*parts[reel]->vel = vel;
+			parts[reel]->vel = vel;
 		}
 	}
 
@@ -116,7 +124,7 @@ void Tongue::reel_in()
 
 void Tongue::teleport(Vec2 &v)
 {
-	for (Entity *e : parts)
+	for (auto &e : parts)
 	{
 		e->teleport(v);
 	}
@@ -124,7 +132,7 @@ void Tongue::teleport(Vec2 &v)
 
 void Tongue::push(Vec2 &f)
 {
-	for (Entity *e : parts)
+	for (auto &e : parts)
 	{
 		e->push(f);
 	}
@@ -155,12 +163,12 @@ void Tongue::correct_angles()
 	float angle;
 	for (int i = 1; i < reel + 1; i++)
 	{
-		dir = *parts[i - 1]->pos - *parts[i]->pos;
+		dir = parts[i - 1]->pos - parts[i]->pos;
 		angle = atan2f(dir.y, dir.x);
-		*parts[i]->theta = angle * 180.0f / M_PI;
-		if (i == 1) { *parts[i - 1]->theta = angle * 180.0f / M_PI; }
+		parts[i]->set_theta(angle * 180.0f / M_PI);
+		if (i == 1) { parts[i - 1]->set_theta(angle * 180.0f / M_PI); }
 	}
-	dir = *parts[reel]->pos - *end;
+	dir = parts[reel]->pos - *end;
 	angle = atan2f(dir.y, dir.x);
 	tongue_end->set_theta(angle * 180.0f / M_PI);
 }
@@ -172,9 +180,9 @@ void Tongue::update()
 	switch (state)
 	{
 	case TongueState::IDLE:
-		for (Entity *e : parts)
+		for (auto &e : parts)
 		{
-			*e->pos = *end;
+			e->pos = *end;
 		}
 		*end = *origin;
 		break;
@@ -185,7 +193,7 @@ void Tongue::update()
 		*end = *origin;
 		max_i = reel;
 		reel_out();
-		if (state != TongueState::RELEASED) { break; } // Fall through if released released in this step.
+		if (state != TongueState::RELEASED) { break; } // Fall through if released in this step.
 	case TongueState::RELEASED:
 		correct_pos();
 		reel_in();
@@ -199,23 +207,23 @@ void Tongue::update()
 		{
 			if (i == 0)
 			{
-				Vec2 d_down = *parts[i]->pos - *parts[i + 1]->pos;
-				parts[i]->push(spring_force(d_down, *parts[i]->vel, s_mass, 0));
+				Vec2 d_down = parts[i]->pos - parts[i + 1]->pos;
+				parts[i]->push(spring_force(d_down, parts[i]->vel, s_mass, 0));
 			}
 			else if (i == reel)
 			{
-				Vec2 d_up = *parts[i]->pos - *parts[i - 1]->pos;
-				Vec2 d_down = *parts[i]->pos - *end;
-				parts[i]->push(spring_force(d_up, *parts[i]->vel, s_mass, 1) + spring_force(d_down, *parts[i]->vel, s_mass, 1));
+				Vec2 d_up = parts[i]->pos - parts[i - 1]->pos;
+				Vec2 d_down = parts[i]->pos - *end;
+				parts[i]->push(spring_force(d_up, parts[i]->vel, s_mass, 1) + spring_force(d_down, parts[i]->vel, s_mass, 1));
 			}
 			else
 			{
-				Vec2 d_up = *parts[i]->pos - *parts[i - 1]->pos;
-				Vec2 d_down = *parts[i]->pos - *parts[i + 1]->pos;
-				parts[i]->push(spring_force(d_up, *parts[i]->vel, s_mass, 1) + spring_force(d_down, *parts[i]->vel, s_mass, 1));
+				Vec2 d_up = parts[i]->pos - parts[i - 1]->pos;
+				Vec2 d_down = parts[i]->pos - parts[i + 1]->pos;
+				parts[i]->push(spring_force(d_up, parts[i]->vel, s_mass, 1) + spring_force(d_down, parts[i]->vel, s_mass, 1));
 			}
 		}
-		for (Entity *e : parts) { e->update(); }
+		for (auto &e : parts) { e->update(); }
 		correct_angles();
 	}
 }

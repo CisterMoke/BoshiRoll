@@ -8,6 +8,9 @@
 #include <vector>
 #include "BaseSprite.h"
 #include "Mat22.h"
+#include "FontTextureCache.h"
+
+
 class FontSprite: public BaseSprite
 {
 public:
@@ -16,9 +19,10 @@ public:
 	FontSprite(std::string text, std::string path, int size, SDL_Color color = {0, 0, 0});
 	FontSprite(const FontSprite &other);
 
+
 	void set_text(std::string text);
 	void set_color(SDL_Color color);
-	void set_font(TTF_Font *font);
+	void set_font(std::string path, int size);
 	void set_tot_theta(float angle);
 	void rotate_tot(float angle);
 	void start_iter();
@@ -39,7 +43,7 @@ protected:
 	std::shared_ptr<TTF_Font> _font;
 	int tabsize = 50;
 	int linespace;
-	std::array<std::pair<std::shared_ptr<SDL_Texture>, Vec2>*, 127> texture_cache;
+	std::unique_ptr<FontTextureCache> texture_cache;
 	int curr_offset = -1; int curr_char = -1;
 	Vec2 cursor = Vec2(0.0f, 0.0f);
 	int w_tot, h_tot = 0;

@@ -1,7 +1,5 @@
 #include "BaseSprite.h"
 
-BaseSprite::BaseSprite() = default;
-
 BaseSprite::BaseSprite(std::string path, int mode)
 {
 	load_from_file(path, mode);
@@ -14,11 +12,6 @@ BaseSprite::BaseSprite(const BaseSprite & other)
 
 	w = other.w; h = other.h; theta = other.theta; scale_x = other.scale_x, scale_y = other.scale_y;
 	_flip = other._flip;
-}
-
-BaseSprite::~BaseSprite()
-{
-	clear_mem();
 }
 
 bool BaseSprite::load_from_file(std::string path, int mode)
@@ -53,8 +46,6 @@ SDL_RendererFlip BaseSprite::get_flip() { return _flip; }
 void BaseSprite::reset()
 {
 	clear_mem();
-	texture = nullptr;
-	base_surf = nullptr;
 	w = 0;
 	h = 0;
 	theta = 0.0;
@@ -86,7 +77,7 @@ void BaseSprite::zoom(float rx, float ry)
 
 void BaseSprite::flip(SDL_RendererFlip f) { _flip = f; }
 void BaseSprite::toggle_flip(SDL_RendererFlip f) { _flip =(SDL_RendererFlip)(_flip ^ f); }
-void BaseSprite::rotate(float angle) { theta -= fmodf(angle, 360); }
+void BaseSprite::rotate(float angle) { theta = fmodf(fmodf(theta + angle, 360) + 360, 360); }
 
 void BaseSprite::clear_mem()
 {

@@ -78,7 +78,7 @@ void RenderColliderCommand<RectCollider>::execute(SDL_Renderer *renderer)
 	Mat22 T = camera->get_transform();
 	Vec2 orig = camera->get_origin();
 	Vec2 offset = Vec2(glob::SCREEN_WIDTH / 2, glob::SCREEN_HEIGHT / 2);
-	Vec2 center = T * (*coll->pos + Vec2(coll->w / 2, coll->h / 2) - orig) + offset;
+	Vec2 center = T * (*coll->lu + Vec2(coll->w / 2, coll->h / 2) - orig) + offset;
 	float w_hat = coll->w * (T * Vec2(1.0f, 0.0f)).norm();
 	float h_hat = coll->h * (T * Vec2(0.0f, 1.0f)).norm();
 

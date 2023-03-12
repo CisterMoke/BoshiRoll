@@ -1,9 +1,8 @@
 #include "FontSprite.h"
 
 FontSprite::FontSprite(TTF_Font *font)
-	: _font(font, TTF_CloseFont)
+	:_font(font, TTF_CloseFont), texture_cache(new FontTextureCache())
 {
-	texture_cache.fill(nullptr);
 	set_text(" ");
 	TTF_SizeText(_font.get(), "A", nullptr, &linespace);
 }
@@ -15,19 +14,13 @@ FontSprite::FontSprite(std::string text, std::string path, int size, SDL_Color c
 	set_text(text);
 }
 
-FontSprite::FontSprite(const FontSprite &other): BaseSprite(other)
+FontSprite::FontSprite(const FontSprite &other)
+	: BaseSprite(other), txt(other.txt), offsets(other.offsets), substrings(other.substrings),
+	colr(other.colr), _font(other._font), tabsize(other.tabsize), linespace(other.linespace),
+	curr_offset(other.curr_offset), curr_char(other.curr_char),
+	cursor(other.cursor), w_tot(other.w_tot), h_tot(other.h_tot)
 {
-	txt = other.txt;
-	offsets = other.offsets;
-	substrings = other.substrings;
-	colr = other.colr;
-	_font = other._font;
-	tabsize = other.tabsize;
-	linespace = other.linespace;
-	texture_cache = other.texture_cache;
-	curr_offset = other.curr_offset; curr_char = other.curr_char;
-	cursor = other.cursor;
-	w_tot = other.w_tot, h_tot = other.h_tot;
+	texture_cache = std::make_unique<FontTextureCache>(*other.texture_cache);
 }
 
 void FontSprite::set_text(std::string text)
@@ -44,9 +37,10 @@ void FontSprite::set_color(SDL_Color color)
 	populate_cache();
 }
 
-void FontSprite::set_font(TTF_Font *font)
+void FontSprite::set_font(std::string path, int size)
 {
-	_font = std::shared_ptr<TTF_Font>(font);
+	TTF_Font *font = load_font(path, size);
+	_font.reset(font, TTF_CloseFont);
 	clear_cache();
 	linespace = TTF_SizeText(_font.get(), "A", nullptr, &linespace);
 	populate_cache();
@@ -66,8 +60,8 @@ void FontSprite::start_iter()
 {
 	curr_offset = 0; curr_char = 0;
 	char c = substrings[curr_offset][curr_char];
-	texture = texture_cache[c]->first;
-	Vec2 dims = texture_cache[c]->second;
+	texture = texture_cache->get_texture(c);
+	Vec2 dims = *texture_cache->get_dim(c);
 	w = dims.x; h = dims.y;
 	cursor = Vec2(0.0f, 0.0f);
 }
@@ -87,8 +81,8 @@ bool FontSprite::next_iter()
 		cursor = offsets[curr_offset];
 	}
 	char c = substrings[curr_offset][curr_char];
-	texture = texture_cache[c]->first;
-	Vec2 dims = texture_cache[c]->second;
+	texture = texture_cache->get_texture(c);
+	Vec2 dims = *texture_cache->get_dim(c);
 	w = dims.x; h = dims.y;
 	return true;
 }
@@ -175,16 +169,15 @@ void FontSprite::parse_text(std::string txt)
 
 void FontSprite::create_char_texture(char c)
 {
-	if (_font == nullptr) { return; }
+	if (_font.get() == nullptr) { return; }
 	if (c == 32)
 	{
-		c = 45;
-		base_surf.reset(TTF_RenderText_Solid(_font.get(), &c, colr), SDL_FreeSurface);
+		base_surf.reset(TTF_RenderGlyph_Solid(_font.get(), c, colr), SDL_FreeSurface);
 		texture.reset();
 	}
 	else
 	{
-		base_surf.reset(TTF_RenderText_Solid(_font.get(), &c, colr), SDL_FreeSurface);
+		base_surf.reset(TTF_RenderGlyph_Solid(_font.get(), c, colr), SDL_FreeSurface);
 		texture.reset(SDL_CreateTextureFromSurface(glob::g_renderer, base_surf.get()), SDL_DestroyTexture);
 	}
 	w = base_surf->w;
@@ -201,7 +194,7 @@ void FontSprite::populate_cache()
 	int tot_w = 0;
 	int tot_h = offsets[offsets.size() - 1].y + linespace;
 
-	texture_cache[0] = new std::pair<std::shared_ptr<SDL_Texture>, Vec2>{ std::shared_ptr<SDL_Texture>(), Vec2() };
+	texture_cache->insert(0, std::shared_ptr<SDL_Texture>(), Vec2());
 
 	for (int i = 0; i < substrings.size(); i++)
 	{
@@ -209,33 +202,26 @@ void FontSprite::populate_cache()
 		std::string sub = substrings[i];
 		for (char c : sub)
 		{
-			if (0 < c && c < 128)
-			{
-				if (texture_cache[c] == nullptr)
-				{
-					create_char_texture(c);
-					texture_cache[c] = new std::pair<std::shared_ptr<SDL_Texture>, Vec2>{ texture, Vec2(w, h) };
-				}
-				linewidth += texture_cache[c]->second.x;
+			if (c < 1 && c > 127) { continue; }
+			else if (!texture_cache->contains(c)) { 
+				create_char_texture(c); 
+				texture_cache->insert(c, texture, Vec2(w, h));
 			}
+			linewidth += texture_cache->get_dim(c)->x;
 		}
 		if (linewidth + offsets[i].x > tot_w) { tot_w = linewidth + offsets[i].x; }
 	}
 	base_surf.reset();
 	texture.reset();
+	w = 0; h = 0;
 	w_tot = tot_w;
 	h_tot = tot_h;
 }
 
 void FontSprite::clear_cache()
 {
-	for (int i = 0; i < texture_cache.size(); i++)
-	{
-		if (texture_cache[i] != nullptr)
-		{
-			texture_cache[i]->first.reset();
-		}
-	}
+	texture_cache->clear();
+	base_surf.reset();
 	texture.reset();
 }
 

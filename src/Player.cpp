@@ -1,19 +1,17 @@
 #include "Player.h"
+#include "Player.h"
 
 
-Player::Player(std::string spritePath, float zoom, int mode)
-	: Entity(spritePath, zoom, mode), tongue(new Tongue(pos))
-{}
+Player::Player(std::shared_ptr<BaseSprite> sprite, const Vec2 &pos)
+	: Entity(sprite, pos), collider(new CircleCollider(std::shared_ptr<Vec2>(&this->pos, [](Vec2*) {}), sprite->get_width() / 2)), tongue(new Tongue(&this->pos)){}
 
-Player::Player(std::string spritePath, Vec2 &pos, float zoom, int mode)
-	: Entity(spritePath, pos, zoom, mode), tongue(new Tongue(&pos))
-{}
+Player::Player(std::shared_ptr<BaseSprite> sprite, float x, float y)
+	: Player(sprite, Vec2(0.0f, 0.0f)) {}
 
-Player::Player(std::string spritePath, float x, float y, float zoom, int mode)
-	: Entity(spritePath, x, y, zoom, mode), tongue(new Tongue(pos))
-{}
+Player::Player(const Player &other)
+	: Player(other.sprite, other.pos) {}
 
-Player:: ~Player() { delete tongue; }
+Tongue &Player::get_tongue() { return *tongue; }
 
 void Player::do_action(SDL_Event &event)
 {
@@ -23,7 +21,7 @@ void Player::do_action(SDL_Event &event)
 		{
 			Vec2 dir = Vec2(event.button.x - glob::SCREEN_WIDTH / 2, event.button.y - glob::SCREEN_HEIGHT / 2);
 			if (dir == Vec2(0.0f, 0.0f)) { dir = Vec2(1.0f, 0.0f); }
-			tongue->shoot(dir, *vel);
+			tongue->shoot(dir, vel);
 		}
 	}
 	else if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_RIGHT)
@@ -45,11 +43,11 @@ void Player::do_action(SDL_Event &event)
 			break;
 
 		case SDLK_UP:
-			*t_force += Vec2(0.0f, -5.0f) * mass;
+			t_force += Vec2(0.0f, -5.0f) * mass;
 			break;
 
 		case SDLK_DOWN:
-			*t_force += Vec2(0.0f, 5.0f) * mass;
+			t_force += Vec2(0.0f, 5.0f) * mass;
 			break;
 
 		case SDLK_LEFT:
@@ -88,8 +86,8 @@ void Player::update()
 	}
 	if (tongue->get_state() == TongueState::ANCHORED)
 	{
-		Vec2 disp = *pos - *tongue->parts[tongue->get_reel()]->pos;
-		Vec2 F = tongue->spring_force(disp, *vel, mass, 0);
+		Vec2 disp = pos - tongue->parts[tongue->get_reel()]->pos;
+		Vec2 F = tongue->spring_force(disp, vel, mass, 0);
 		push(F);
 	}
 	Entity::update();

@@ -1,18 +1,28 @@
 #include "Game.h"
 
-Game::Game(Player &player, Level &level)
-	:player(std::make_shared<Player>(player)), currLevel(std::make_shared<Level>(level)), camera(new Camera()) {}
-Game::Game(std::shared_ptr<Player> player, std::shared_ptr<Level> level)
-	: player(player), currLevel(level), camera(new Camera()) {}
-
-Game::~Game() {}
-
-void Game::init()
+Game::Game(const Player &player, const Level &level, Camera &camera)
+	:player(std::make_unique<Player>(player)), currLevel(std::make_unique<Level>(level)), camera(camera)
 {
-	*player->pos = currLevel->spawn;
-	camera->set_origin(*player->pos);
-	camera->rx = 0.5; camera->ry = 0.5;
+	this->player->pos = currLevel->spawn;
+	this->camera.set_origin(this->player->pos);
+	this->camera.rx = 0.5; this->camera.ry = 0.5;
 }
+
+bool Game::is_paused() { return paused; }
+
+bool Game::is_over() { return over; }
+
+void Game::reset()
+{
+	this->player->pos = currLevel->spawn;
+}
+
+void Game::pause() { paused = true; }
+
+void Game::resume() { paused = false; }
+
+void Game::end() { over = true; }
+
 
 void Game::tick()
 {
@@ -21,32 +31,36 @@ void Game::tick()
 
 	check_collisions();
 
-	*player->t_force += Vec2(0, g * player->mass);
-	player->tongue->apply_gravity(g);
+	player->t_force += Vec2(0, g * player->mass);
+	player->get_tongue().apply_gravity(g);
 }
 
 void Game::push_render_commands()
 {
-	RenderParallaxCommand *backgroundMsg = new RenderParallaxCommand(currLevel->get_background(), camera, Vec2(0.0f, 0.0f), 0.0f, true);
-	RenderParallaxCommand *foregroundMsg = new RenderParallaxCommand(currLevel->get_foreground(), camera, Vec2(0.0f, 100.0f), 1.0f);
-	RenderSpriteCommand<BaseSprite> *playerMsg = new RenderSpriteCommand(player->sprite, camera, *player->pos);
+	RenderParallaxCommand *background_msg = new RenderParallaxCommand(&currLevel->get_background(), &camera, Vec2(0.0f, 0.0f), 0.0f, true);
+	render_command_pool.emplace_front(background_msg);
 
-
-	render_command_pool.push_front(backgroundMsg);
-	render_command_pool.push_back(playerMsg);
-	
-	if (player->tongue->get_state() != TongueState::IDLE)
+	for (auto enemy : currLevel->enemies)
 	{
-		for (int i = 0; i < player->tongue->get_reel() + 1; i++)
-		{
-			Entity *e = player->tongue->parts[i];
-			render_command_pool.push_back( new RenderSpriteCommand(e->sprite, camera, *e->pos));
-		}
-		render_command_pool.push_back(new RenderSpriteCommand<BaseSprite>(player->tongue->tongue_end, camera, *player->pos));
+		RenderSpriteCommand<AnimSprite> *enemy_msg = new RenderSpriteCommand(enemy->sprite.get(), &camera, enemy->pos);
+		render_command_pool.push_back(enemy_msg);
 	}
-	render_command_pool.push_back(foregroundMsg);
 
+	RenderSpriteCommand<BaseSprite> *player_msg = new RenderSpriteCommand(player->sprite.get(), &camera, player->pos);
+	render_command_pool.push_back(player_msg);
+	
+	if (player->get_tongue().get_state() != TongueState::IDLE)
+	{
+		for (int i = 0; i < player->get_tongue().get_reel() + 1; i++)
+		{
+			TonguePart &tp = *player->get_tongue().parts[i];
+			render_command_pool.push_back( new RenderSpriteCommand(tp.sprite.get(), &camera, tp.pos));
+		}
+		render_command_pool.push_back(new RenderSpriteCommand(player->get_tongue().tongue_end.get(), &camera, player->pos));
+	}
 
+	RenderParallaxCommand *foreground_msg = new RenderParallaxCommand(&currLevel->get_foreground(), &camera, Vec2(0.0f, 100.0f), 1.0f);
+	render_command_pool.push_back(foreground_msg);
 }
 
 bool Game::check_collisions()
@@ -61,26 +75,25 @@ bool Game::check_collisions()
 			player->teleport(disp);
 
 			Vec2 n_disp = disp.normalize();
-			Vec2 bounce = n_disp * player->vel->dot(n_disp) * (1 + bounciness);
+			Vec2 bounce = n_disp * player->vel.dot(n_disp) * (1 + bounciness);
 			if (bounce.norm2() > 1e-4f)
 			{
-				*player->t_force -= bounce;
+				player->t_force -= bounce;
 			}
 
 			Vec2 tangent = n_disp.cross(1.0f);
-			float grip = calculate_grip(fabsf(player->vel->dot(n_disp)));
-			float slip = slip_ratio(*player, tangent);
+			float grip = calculate_grip(fabsf(player->vel.dot(n_disp)));
+			float slip = slip_ratio(tangent);
 			float Ft = traction_force(slip, grip);
-			*player->t_force += tangent * Ft;
+			player->t_force += tangent * Ft;
 			player->r_force += Ft * 180.0f / player->collider->r / M_PI;
-			apply_rolling_friction(*player, grip);
+			apply_rolling_friction(grip);
 			check = true;
-			BREAKPOINT;
 		}
-		if (player->tongue->get_state() == TongueState::SHOT
-			&& collider->check_collision(*player->tongue->get_tip()->collider))
+		if (player->get_tongue().get_state() == TongueState::SHOT
+			&& collider->check_collision(*player->get_tongue().get_tip().collider))
 		{
-			player->tongue->anchor();
+			player->get_tongue().anchor();
 		}
 	}
 	delete cptr;
@@ -90,13 +103,13 @@ bool Game::check_collisions()
 void Game::apply_air_friction(Entity &e)
 {
 	// Translational friction
-	float vel_norm = e.vel->norm();
+	float vel_norm = e.vel.norm();
 	if (fabsf(vel_norm) < 0.01f)
 	{
-		*e.vel = Vec2(0.0f, 0.0f);
+		e.vel = Vec2(0.0f, 0.0f);
 		return;
 	}
-	*e.vel -= *e.vel * air_fric_t/e.mass;
+	e.vel -= e.vel * air_fric_t/e.mass;
 
 	// Rotational friction
 	if (fabsf(e.omega) < 0.01f)
@@ -107,15 +120,15 @@ void Game::apply_air_friction(Entity &e)
 	e.omega -= e.omega * air_fric_r/e.mass;
 }
 
-void Game::apply_rolling_friction(Entity &e, float grip)
+void Game::apply_rolling_friction(float grip)
 {
-	float vel_norm = e.vel->norm();
+	float vel_norm = player->vel.norm();
 	if (fabsf(vel_norm) < 0.01f)
 	{
-		*e.vel = Vec2(0.0f, 0.0f);
+		player->vel = Vec2(0.0f, 0.0f);
 		return;
 	}
-	*e.vel -= *e.vel * roll_fric * grip;
+	player->vel -= player->vel * roll_fric * grip;
 
 }
 
@@ -126,11 +139,11 @@ float Game::calculate_grip(float Fn, float sigma)
 	//return fminf(1.0f, Fn * sigma);
 }
 
-float Game::slip_ratio(Entity &e, Vec2 &dir)
+float Game::slip_ratio(Vec2 &dir)
 {
-	float vp = dir.dot(*player->vel);
-	float omega = e.omega * M_PI / 180; // convert to radians
-	float r = e.collider->r;
+	float vp = dir.dot(player->vel);
+	float omega = player->omega * M_PI / 180; // convert to radians
+	float r = player->collider->r;
 
 	return (omega * r + vp);// / (fabsf(vp) + fabsf(omega * r) + 1e-6f);
 }

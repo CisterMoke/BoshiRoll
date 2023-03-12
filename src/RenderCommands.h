@@ -49,8 +49,6 @@ struct RenderParallaxCommand : public RenderSpriteCommand<BaseSprite>
 	virtual void execute(SDL_Renderer *renderer);
 };
 
-
-
 template<class Collider>
 struct RenderColliderCommand : public BaseRenderCommand
 {

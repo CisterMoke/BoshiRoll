@@ -1,14 +1,16 @@
 #include "AnimSprite.h"
 
-
-AnimSprite::AnimSprite() = default;
+AnimSprite::AnimSprite(std::string path, frame_dim_t frame_dim, int mode)
+{
+	load_from_file(path, frame_dim, mode);
+}
 
 AnimSprite::AnimSprite(const AnimSprite &other): BaseSprite(other)
 {
 	num_frames = other.num_frames;
 	curr_frame = other.curr_frame;
 	anim_delay = other.anim_delay;
-	frame_size = other.frame_size;
+	frame_dim = other.frame_dim;
 	frame_rects = other.frame_rects;
 }
 
@@ -18,12 +20,12 @@ bool AnimSprite::load_from_file(std::string path, int mode)
 	return BaseSprite::load_from_file(path, mode);
 }
 
-bool AnimSprite::load_from_file(std::string path, array<int, 2> _frameSize, int mode)
+bool AnimSprite::load_from_file(std::string path,frame_dim_t frame_dim, int mode)
 {
 	if (!load_from_file(path, mode)) { return false; }
-	frame_size = _frameSize;
-	w = frame_size[0];
-	h = frame_size[1];
+	this->frame_dim = frame_dim;
+	w = frame_dim[0];
+	h = frame_dim[1];
 
 	int horizontal = base_surf->w / w;
 	int vertical = base_surf->h / h;
@@ -46,7 +48,7 @@ bool AnimSprite::load_from_file(std::string path, array<int, 2> _frameSize, int 
 
 SDL_Rect AnimSprite::get_frame_clip()
 {
-	return SDL_Rect(frame_rects[curr_frame][0], frame_rects[curr_frame][1], frame_size[0], frame_size[1]);
+	return SDL_Rect(frame_rects[curr_frame][0], frame_rects[curr_frame][1], frame_dim[0], frame_dim[1]);
 }
 
 void AnimSprite::reset()

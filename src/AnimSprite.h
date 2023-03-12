@@ -5,16 +5,16 @@
 #include <array>
 #include <vector>
 #include "BaseSprite.h"
-using std::array;
-using std::vector;
+
+using frame_dim_t = std::array<int, 2>;
 
 class AnimSprite: public BaseSprite
 {
 public:
-	AnimSprite();
+	AnimSprite(std::string path, frame_dim_t frame_dim, int mode = ALPHA | COLORKEY);
 	AnimSprite(const AnimSprite &other);
 
-	bool load_from_file(std::string path, std::array<int, 2> _frameSize, int mode = ALPHA | COLORKEY);
+	bool load_from_file(std::string path, frame_dim_t frame_dim, int mode = ALPHA | COLORKEY);
 
 	SDL_Rect get_frame_clip();
 
@@ -26,12 +26,15 @@ public:
 	void rewind(int frames = 1);
 	void sync(bool reverse = false);
 
+protected:
+	AnimSprite() = default;
+
 private:
 	int num_frames = 0;
 	int curr_frame = 0;
 	int anim_delay = 1000 / glob::FPS;
-	array<int, 2> frame_size = { 0, 0 };
-	vector<array<int,2>> frame_rects;
+	frame_dim_t frame_dim = { 0, 0 };
+	std::vector<frame_dim_t> frame_rects;
 	bool load_from_file(std::string path, int mode);
 };
 

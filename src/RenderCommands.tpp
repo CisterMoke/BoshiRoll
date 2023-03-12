@@ -19,7 +19,6 @@ void RenderSpriteCommand<Sprite>::_render_sprite_cam(SDL_Renderer *renderer)
 	SDL_RenderCopyEx(renderer, sprite->get_texture(), clip, &dest, sprite->get_theta() - camera->theta, NULL, sprite->get_flip());
 }
 
-
 template<class Sprite>
 void RenderSpriteCommand<Sprite>::_render_sprite_no_cam(SDL_Renderer *renderer)
 {

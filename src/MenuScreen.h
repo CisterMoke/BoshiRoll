@@ -5,6 +5,8 @@
 #include "MenuButton.h"
 #include "ButtonActions.h"
 
+typedef std::function<void()> callback_t;
+
 struct MenuText
 {
 	FontSprite sprite;
@@ -19,25 +21,36 @@ struct MenuText
 class MenuScreen
 {
 	std::vector<std::shared_ptr<MenuButton>> buttons = {};
+	std::vector<std::unique_ptr<BaseButtonAction>> actions = {};
+	std::vector<callback_t> callbacks = {};
 	std::vector<MenuText> texts = {};
 	std::vector<std::shared_ptr<MenuScreen>> next_screens = {};
 
-	std::shared_ptr<MenuButton> pressed = nullptr;
-	std::shared_ptr<MenuButton> selected = nullptr;
+	int curr_button = -1;
+	ButtonState curr_state = BUTTON_DEFAULT;
 	bool closed = false;
+
+	void update_current(int idx);
+	void reset_current();
 
 public:
 
 	bool is_closed();
 
-	std::shared_ptr<MenuScreen> get_next(int i);
+	std::shared_ptr<MenuScreen> &get_next(int i);
+	std::shared_ptr<MenuScreen> &get_last_added();
 
-	void add_next(std::shared_ptr<MenuScreen> next);
-	void add_button(MenuButton &&button);
-	void add_close_button(MenuButton &&button);
-	void add_text(const FontSprite &text, int x, int y);
-	void set_text(int idx, std::string text);
-	void reset();
+	MenuScreen &add_next(std::shared_ptr<MenuScreen> next);
+	MenuScreen &add_button(
+		std::shared_ptr<MenuButton> button, BaseButtonAction *action = nullptr,
+		callback_t callback = []() {}		
+	);
+	MenuScreen &add_close_button(
+		std::shared_ptr<MenuButton> button, callback_t callback = []() {}
+	);
+	MenuScreen &add_text(const FontSprite &text, int x, int y);
+	MenuScreen &set_text(int idx, std::string text);
+	MenuScreen &reset();
 
 	void handle_event(SDL_Event &event);
 

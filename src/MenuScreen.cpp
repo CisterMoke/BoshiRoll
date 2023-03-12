@@ -1,44 +1,72 @@
 #include "MenuScreen.h"
 
+void MenuScreen::update_current(int idx)
+{
+	curr_button = idx;
+	curr_state = buttons[idx]->get_state();
+}
+
+void MenuScreen::reset_current()
+{
+	curr_button = -1;
+	curr_state = BUTTON_DEFAULT;
+}
+
 bool MenuScreen::is_closed() { return closed; }
 
-std::shared_ptr<MenuScreen> MenuScreen::get_next(int i)
+std::shared_ptr<MenuScreen> &MenuScreen::get_next(int i)
 {
-	return 0 <= i && i < next_screens.size() ? next_screens[i] : nullptr;
+	return next_screens[i];
 }
 
-void MenuScreen::add_next(std::shared_ptr<MenuScreen> next)
+std::shared_ptr<MenuScreen> &MenuScreen::get_last_added()
+{
+	return next_screens.back();
+}
+
+MenuScreen &MenuScreen::add_next(std::shared_ptr<MenuScreen> next)
 {
 	next_screens.push_back(next);
+	return *this;
 }
 
-void MenuScreen::add_button(MenuButton &&button)
+MenuScreen &MenuScreen::add_button(
+	std::shared_ptr<MenuButton> button, BaseButtonAction *action,
+	callback_t callback
+)
 {
-	buttons.emplace_back(new MenuButton(std::move(button)));
+	buttons.push_back(button);
+	callbacks.push_back(callback);
+	actions.emplace_back(action);
+	return *this;
 }
 
-void MenuScreen::add_close_button(MenuButton &&button)
+MenuScreen &MenuScreen::add_close_button(
+	std::shared_ptr<MenuButton> button, callback_t callback
+)
 {
 	BaseButtonAction *close_action = new ButtonBoolToggle(closed);
-	buttons.emplace_back( new MenuButton(std::move(button), close_action) );
+	return add_button(button, close_action, callback);
 }
 
-void MenuScreen::add_text(const FontSprite &text, int x, int y)
+MenuScreen &MenuScreen::add_text(const FontSprite &text, int x, int y)
 {
 	texts.emplace_back(text, x, y);
+	return *this;
 }
 
-void MenuScreen::set_text(int idx, std::string text)
+MenuScreen &MenuScreen::set_text(int idx, std::string text)
 {
-	if (idx < 0 || idx >= texts.size()) { return; }
+	if (idx < 0 || idx >= texts.size()) { return *this; }
 	texts[idx].sprite.set_text(text);
+	return *this;
 }
 
-void MenuScreen::reset()
+MenuScreen &MenuScreen::reset()
 {
-	pressed.reset();
-	selected.reset();
+	reset_current();
 	closed = false;
+	return *this;
 }
 
 void MenuScreen::handle_event(SDL_Event &event)
@@ -48,33 +76,35 @@ void MenuScreen::handle_event(SDL_Event &event)
 	{
 
 	case SDL_MOUSEMOTION:
-		if (pressed != nullptr) { break; }
-		for (auto &b : buttons)
+		if (curr_state == BUTTON_PRESSED) { break; }
+		for (int i = 0; i < buttons.size(); i++)
 		{
-			if (b->select_at(event.motion.x, event.motion.y))
+			if (buttons[i]->select_at(event.motion.x, event.motion.y))
 			{
-				selected = b;
+				update_current(i);
 				break;
 			}
 		}
 		break;
 
 	case SDL_MOUSEBUTTONDOWN:
-		for (auto &b : buttons)
+		for (int i = 0; i < buttons.size(); i++)
 		{
-			if (b->press_at(event.button.x, event.button.y))
+			if (buttons[i]->press_at(event.button.x, event.button.y))
 			{
-				pressed = b;
+				update_current(i);
 				break;
 			}
 		}
 		break;
 
 	case SDL_MOUSEBUTTONUP:
-		if (pressed != nullptr)
+		if (curr_state == BUTTON_PRESSED)
 		{
-			pressed->release_at(event.button.x, event.button.y);
-			pressed = nullptr;
+			buttons[curr_button]->release_at(event.button.x, event.button.y);
+			actions[curr_button]->execute();
+			callbacks[curr_button]();
+			reset_current();
 		}
 		break;
 	}

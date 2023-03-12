@@ -20,25 +20,21 @@ enum ButtonState
 
 class MenuButton
 {
-	std::unique_ptr<BaseButtonAction> action;
 	std::array<std::unique_ptr<BaseSprite>, BUTTON_STATE_NUM> sprites;
-	std::function<void()> callback;
 	rect_t rect;
 	ButtonState state = BUTTON_DEFAULT;
 
 	bool in_bounds(int x, int y);
 
 public:
-	MenuButton(rect_t rect, BaseButtonAction *action, std::function<void()> callback = []() {});
-	MenuButton(MenuButton &&other) noexcept;
-	MenuButton(MenuButton &&other, BaseButtonAction *action);
+	MenuButton(rect_t rect);
 
 	BaseSprite &get_sprite() const;
 	BaseSprite &get_sprite(ButtonState state) const;
 
-	void set_sprite(ButtonState state, const BaseSprite &other);
-	void set_sprite(ButtonState state, std::string path);
-	void set_sprite(ButtonState state, std::string path, int mode);
+	MenuButton &set_sprite(ButtonState state, const BaseSprite &other);
+	MenuButton &set_sprite(ButtonState state, std::string path);
+	MenuButton &set_sprite(ButtonState state, std::string path, int mode);
 
 	int center_x() const;
 	int center_y() const;

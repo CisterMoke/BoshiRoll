@@ -2,29 +2,37 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include "globals.h"
 #include "BaseSprite.h"
 #include "Colliders.h"
-#include "globals.h"
+#include "Enemy.h"
 #include "Vec2.h"
 
 class Level
 {
-public:
-	std::vector<std::shared_ptr<BaseCollider>> colliders;
-	Vec2 spawn = Vec2(0.0f, 0.0f);
-	std::vector<Vec2> checkpoints;
-	
-	Level();
-	~Level();
-
-	BaseSprite *get_background();
-	BaseSprite *get_foreground();
-	bool set_background(std::string path, Vec2 zoom = { 1.0f, 1.0f }, int mode = 0);
-	bool set_foreground(std::string path, Vec2 zoom = { 1.0f, 1.0f }, int mode = ALPHA);
 
 private:
-	BaseSprite *background;
-	BaseSprite *foreground;
+
+	Level();
+
+	std::shared_ptr<BaseSprite> background = nullptr;
+	std::shared_ptr<BaseSprite> foreground = nullptr;
+
+public:
+
+	std::vector<std::shared_ptr<BaseCollider>> colliders = {};
+	std::vector<std::shared_ptr<Enemy>> enemies = {};
+	Vec2 spawn = Vec2(0.0f, 0.0f);
+	std::vector<Vec2> checkpoints = {};
+
+	static Level init_level();
+
+	Level(const Level &other);
+	
+	BaseSprite &get_background();
+	BaseSprite &get_foreground();
+	Level *set_background(std::shared_ptr<BaseSprite> background);
+	Level *set_foreground(std::shared_ptr<BaseSprite> foreground);
 
 };
 

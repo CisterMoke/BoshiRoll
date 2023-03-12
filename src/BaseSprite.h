@@ -16,10 +16,8 @@ class BaseSprite
 {
 	friend class Entity;
 public:
-	BaseSprite();
 	BaseSprite(std::string path, int mode = ALPHA | COLORKEY);
 	BaseSprite(const BaseSprite &other);
-	~BaseSprite();
 
 	bool load_from_file(std::string path, int mode = ALPHA | COLORKEY);
 
@@ -40,6 +38,7 @@ public:
 	void set_theta(float angle);
 
 protected:
+	BaseSprite() = default;
 	void clear_mem();
 
 	int w = 0;

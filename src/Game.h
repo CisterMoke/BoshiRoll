@@ -11,11 +11,9 @@
 class Game
 {
 public:
-	std::shared_ptr<Player> player;
-	std::shared_ptr<Level> currLevel;
-	Camera *camera;
-	bool paused = false;
-	bool over = false;
+	std::unique_ptr<Player> player;
+	std::unique_ptr<Level> currLevel;
+	Camera &camera;
 
 	// Physics
 	float g = 12.0f / glob::GAMETICKS;
@@ -26,21 +24,28 @@ public:
 	float bounciness = 0.2f;
 
 
-	Game() = default;
-	Game(Player &player, Level &level);
-	Game(std::shared_ptr<Player> player, std::shared_ptr<Level> level);
-	~Game();
+	Game(const Player &player, const Level &level, Camera &camera);
 
-	void init();
+	bool is_paused();
+	bool is_over();
+
+	void reset();
+	void pause();
+	void resume();
+	void end();
+
 	void tick();
 	void push_render_commands();
 
 private:
+	bool paused = false;
+	bool over = false;
+
 	bool check_collisions();
 	void apply_air_friction(Entity &e);
-	void apply_rolling_friction(Entity &e, float grip);
+	void apply_rolling_friction(float grip);
 	float calculate_grip(float Fn, float sigma = -1.0f);
-	float slip_ratio(Entity &e, Vec2 &dir);
+	float slip_ratio(Vec2 &dir);
 	float traction_force(float slip, float grip);
 };
 

@@ -55,55 +55,61 @@ std::shared_ptr<MenuScreen> MainMenu::initialize_screens()
 	BaseSprite button_up = BaseSprite(glob::BUTTON_UP);
 	BaseSprite button_over = BaseSprite(glob::BUTTON_OVER);
 	BaseSprite button_down = BaseSprite(glob::BUTTON_DOWN);
-	MenuButton start_button = MenuButton(
-		{ CENTER_X - 50, CENTER_Y * 2/3 - 25, CENTER_X + 50, CENTER_Y * 2/3 + 25 },
-		new ButtonBoolToggle(game_start));
-	MenuButton options_open = MenuButton(
-		{ CENTER_X - 50, CENTER_Y - 25, CENTER_X + 50, CENTER_Y + 25 },
-		new ButtonSetValue(next_idx, 0));
-	MenuButton quit_button = MenuButton(
-	{  CENTER_X - 50, CENTER_Y * 4/3 - 25, CENTER_X + 50,CENTER_Y * 4/3 + 25 },
-		nullptr);
-	start_button.set_sprite(BUTTON_DEFAULT, button_up), start_button.set_sprite(BUTTON_SELECTED, button_over), start_button.set_sprite(BUTTON_PRESSED, button_down);
-	options_open.set_sprite(BUTTON_DEFAULT, button_up), options_open.set_sprite(BUTTON_SELECTED, button_over), options_open.set_sprite(BUTTON_PRESSED, button_down);
-	quit_button.set_sprite(BUTTON_DEFAULT, button_up), quit_button.set_sprite(BUTTON_SELECTED, button_over), quit_button.set_sprite(BUTTON_PRESSED, button_down);
 
-	std::shared_ptr<MenuScreen> main_screen(new MenuScreen());
+	std::shared_ptr<MenuButton> start_button = std::make_shared<MenuButton>(
+		MenuButton({ CENTER_X - 50, CENTER_Y * 2 / 3 - 25, CENTER_X + 50, CENTER_Y * 2 / 3 + 25 })
+		);
+	std::shared_ptr<MenuButton> options_open = std::make_shared<MenuButton>(
+		MenuButton({ CENTER_X - 50, CENTER_Y - 25, CENTER_X + 50, CENTER_Y + 25 })
+		);
+	std::shared_ptr<MenuButton> quit_button = std::make_shared<MenuButton>(
+		MenuButton({ CENTER_X - 50, CENTER_Y * 4 / 3 - 25, CENTER_X + 50,CENTER_Y * 4 / 3 + 25 })
+		);
+
+	start_button->set_sprite(BUTTON_DEFAULT, button_up).set_sprite(BUTTON_SELECTED, button_over).set_sprite(BUTTON_PRESSED, button_down);
+	options_open->set_sprite(BUTTON_DEFAULT, button_up).set_sprite(BUTTON_SELECTED, button_over).set_sprite(BUTTON_PRESSED, button_down);
+	quit_button->set_sprite(BUTTON_DEFAULT, button_up).set_sprite(BUTTON_SELECTED, button_over).set_sprite(BUTTON_PRESSED, button_down);
+
+	std::shared_ptr<MenuScreen> main_screen = std::make_shared<MenuScreen>();
+
 	main_screen->add_text(FontSprite("START", glob::COMIC_FONT_BOLD, 18, { 255, 255, 255 }),
-		start_button.center_x(), start_button.center_y());
+		start_button->center_x(), start_button->center_y());
 	main_screen->add_text(FontSprite("OPTIONS", glob::COMIC_FONT_BOLD, 18, { 255, 255, 255 }),
-		options_open.center_x(), options_open.center_y());
+		options_open->center_x(), options_open->center_y());
 	main_screen->add_text(FontSprite("QUIT", glob::COMIC_FONT_BOLD, 18, { 255, 255, 255 }),
-		quit_button.center_x(), quit_button.center_y());
-	main_screen->add_button(std::move(start_button)), main_screen->add_button(std::move(options_open)), main_screen->add_close_button(std::move(quit_button));
-	
-	std::shared_ptr<MenuScreen> options_screen(new MenuScreen());
+		quit_button->center_x(), quit_button->center_y());
 
-	auto update_debug_text = [options_screen]()
+	main_screen->add_button(start_button, new ButtonBoolToggle(game_start));
+	main_screen->add_button(options_open, new ButtonSetValue(next_idx, 0));
+	main_screen->add_close_button(quit_button);
+
+	main_screen->add_next(std::make_shared<MenuScreen>());
+	std::shared_ptr<MenuScreen> &options_screen = main_screen->get_last_added();
+
+	auto update_debug_text = [&options_screen]()
 	{
 		options_screen->set_text(1, debug_mode_string());
 	};
 
-	MenuButton debug_button(
-		{ CENTER_X - 50, CENTER_Y * 4/5 - 25, CENTER_X + 50, CENTER_Y * 4/5 + 25 },
+	std::shared_ptr<MenuButton> debug_button = std::make_shared<MenuButton>(
+		MenuButton({ CENTER_X - 50, CENTER_Y * 4 / 5 - 25, CENTER_X + 50, CENTER_Y * 4 / 5 + 25 })
+		);
+	std::shared_ptr<MenuButton> options_close = std::make_shared<MenuButton>(
+		MenuButton({ CENTER_X - 50, CENTER_Y * 6 / 5 - 25, CENTER_X + 50, CENTER_Y * 6 / 5 + 25 })
+		);
+
+	debug_button->set_sprite(BUTTON_DEFAULT, button_up).set_sprite(BUTTON_SELECTED, button_over).set_sprite(BUTTON_PRESSED, button_down);
+	options_close->set_sprite(BUTTON_DEFAULT, button_up).set_sprite(BUTTON_SELECTED, button_over).set_sprite(BUTTON_PRESSED, button_down);
+
+	options_screen->add_text(FontSprite("DEBUG_MODE:", glob::COMIC_FONT_BOLD, 18), debug_button->center_x() - 175, debug_button->center_y());
+	options_screen->add_text(FontSprite(debug_mode_string(), glob::COMIC_FONT_BOLD, 18, {255, 255, 255}), debug_button->center_x(), debug_button->center_y());
+	options_screen->add_text(FontSprite("BACK", glob::COMIC_FONT_BOLD, 18, {255, 255, 255}), options_close->center_x(), options_close->center_y());
+
+	options_screen->add_button(
+		debug_button,
 		new ButtonScrollValue<DebugMode>(glob::DEBUG_MODE, { DEBUG_OFF, DEBUG_INFO, DEBUG_DRAW, DEBUG_ALL }),
-		update_debug_text
-	);
-	MenuButton options_close(
-		{ CENTER_X - 50, CENTER_Y * 6/5 - 25, CENTER_X + 50, CENTER_Y * 6/5 + 25 },
-		nullptr
-	);
-	debug_button.set_sprite(BUTTON_DEFAULT, button_up), debug_button.set_sprite(BUTTON_SELECTED, button_over), debug_button.set_sprite(BUTTON_PRESSED, button_down);
-	options_close.set_sprite(BUTTON_DEFAULT, button_up), options_close.set_sprite(BUTTON_SELECTED, button_over), options_close.set_sprite(BUTTON_PRESSED, button_down);
-
-	options_screen->add_text(FontSprite("DEBUG_MODE:", glob::COMIC_FONT_BOLD, 18), debug_button.center_x() - 175, debug_button.center_y());
-	options_screen->add_text(FontSprite(debug_mode_string(), glob::COMIC_FONT_BOLD, 18, {255, 255, 255}), debug_button.center_x(), debug_button.center_y());
-	options_screen->add_text(FontSprite("BACK", glob::COMIC_FONT_BOLD, 18, {255, 255, 255}), options_close.center_x(), options_close.center_y());
-
-	options_screen->add_button(std::move(debug_button));
-	options_screen->add_close_button(std::move(options_close));
-
-	main_screen->add_next(options_screen);
+		update_debug_text);
+	options_screen->add_close_button(options_close);
 	
 	return main_screen;
 
@@ -114,3 +120,72 @@ MainMenu::MainMenu()
 
 bool MainMenu::get_game_start() { return game_start; }
 
+std::shared_ptr<MenuScreen> PauseMenu::initialize_screens()
+{
+	int CENTER_X = glob::SCREEN_WIDTH / 2; int CENTER_Y = glob::SCREEN_HEIGHT / 2;
+	BaseSprite button_up = BaseSprite(glob::BUTTON_UP);
+	BaseSprite button_over = BaseSprite(glob::BUTTON_OVER);
+	BaseSprite button_down = BaseSprite(glob::BUTTON_DOWN);
+
+	std::shared_ptr<MenuButton> resume_button = std::make_shared<MenuButton>(
+		MenuButton({ CENTER_X - 50, CENTER_Y * 2 / 3 - 25, CENTER_X + 50, CENTER_Y * 2 / 3 + 25 })
+		);
+	std::shared_ptr<MenuButton> options_open = std::make_shared<MenuButton>(
+		MenuButton({ CENTER_X - 50, CENTER_Y - 25, CENTER_X + 50, CENTER_Y + 25 })
+		);
+	std::shared_ptr<MenuButton> quit_button = std::make_shared<MenuButton>(
+		MenuButton({ CENTER_X - 50, CENTER_Y * 4 / 3 - 25, CENTER_X + 50,CENTER_Y * 4 / 3 + 25 })
+		);
+
+	resume_button->set_sprite(BUTTON_DEFAULT, button_up).set_sprite(BUTTON_SELECTED, button_over).set_sprite(BUTTON_PRESSED, button_down);
+	options_open->set_sprite(BUTTON_DEFAULT, button_up).set_sprite(BUTTON_SELECTED, button_over).set_sprite(BUTTON_PRESSED, button_down);
+	quit_button->set_sprite(BUTTON_DEFAULT, button_up).set_sprite(BUTTON_SELECTED, button_over).set_sprite(BUTTON_PRESSED, button_down);
+	
+	std::shared_ptr<MenuScreen> pause_screen = std::make_shared<MenuScreen>();
+	
+	pause_screen->add_text(FontSprite("RESUME", glob::COMIC_FONT_BOLD, 18, { 255, 255, 255 }),
+		resume_button->center_x(), resume_button->center_y());
+	pause_screen->add_text(FontSprite("OPTIONS", glob::COMIC_FONT_BOLD, 18, { 255, 255, 255 }),
+		options_open->center_x(), options_open->center_y());
+	pause_screen->add_text(FontSprite("QUIT", glob::COMIC_FONT_BOLD, 18, { 255, 255, 255 }),
+		quit_button->center_x(), quit_button->center_y());
+
+	pause_screen->add_button(resume_button, new ButtonBoolToggle(game_resume));
+	pause_screen->add_button(options_open, new ButtonSetValue(next_idx, 0));
+	pause_screen->add_close_button(quit_button);
+
+	pause_screen->add_next(std::make_shared<MenuScreen>());
+	std::shared_ptr<MenuScreen> &options_screen = pause_screen->get_last_added();
+
+	auto update_debug_text = [&options_screen]()
+	{
+		options_screen->set_text(1, debug_mode_string());
+	};
+
+	std::shared_ptr<MenuButton> debug_button = std::make_shared<MenuButton>(
+		MenuButton({ CENTER_X - 50, CENTER_Y * 4 / 5 - 25, CENTER_X + 50, CENTER_Y * 4 / 5 + 25 })
+		);
+	std::shared_ptr<MenuButton> options_close = std::make_shared<MenuButton>(
+		MenuButton({ CENTER_X - 50, CENTER_Y * 6 / 5 - 25, CENTER_X + 50, CENTER_Y * 6 / 5 + 25 })
+		);
+	debug_button->set_sprite(BUTTON_DEFAULT, button_up).set_sprite(BUTTON_SELECTED, button_over).set_sprite(BUTTON_PRESSED, button_down);
+	options_close->set_sprite(BUTTON_DEFAULT, button_up).set_sprite(BUTTON_SELECTED, button_over).set_sprite(BUTTON_PRESSED, button_down);
+
+	options_screen->add_text(FontSprite("DEBUG_MODE:", glob::COMIC_FONT_BOLD, 18), debug_button->center_x() - 175, debug_button->center_y());
+	options_screen->add_text(FontSprite(debug_mode_string(), glob::COMIC_FONT_BOLD, 18, { 255, 255, 255 }), debug_button->center_x(), debug_button->center_y());
+	options_screen->add_text(FontSprite("BACK", glob::COMIC_FONT_BOLD, 18, { 255, 255, 255 }), options_close->center_x(), options_close->center_y());
+
+	options_screen->add_button(
+		debug_button,
+		new ButtonScrollValue<DebugMode>(glob::DEBUG_MODE, { DEBUG_OFF, DEBUG_INFO, DEBUG_DRAW, DEBUG_ALL }),
+		update_debug_text
+		);
+	options_screen->add_close_button(options_close);
+
+	return pause_screen;
+}
+
+PauseMenu::PauseMenu()
+	: Menu(initialize_screens()) {}
+
+bool PauseMenu::get_game_resume() { return game_resume; }
