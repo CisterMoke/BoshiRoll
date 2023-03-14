@@ -16,10 +16,12 @@ add_library(utils OBJECT
 add_library(sprites OBJECT 
     ${CMAKE_CURRENT_SOURCE_DIR}/AnimSprite.h
     ${CMAKE_CURRENT_SOURCE_DIR}/FontSprite.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/FontTextureCache.h
     ${CMAKE_CURRENT_SOURCE_DIR}/BaseSprite.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Sprites.h
     ${CMAKE_CURRENT_SOURCE_DIR}/AnimSprite.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/FontSprite.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/FontTextureCache.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/BaseSprite.cpp
     )
     
@@ -30,9 +32,11 @@ add_library(colliders OBJECT
     )
 
 add_library(entities OBJECT
+    ${CMAKE_CURRENT_SOURCE_DIR}/Enemy.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Entity.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Player.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Tongue.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Enemy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Entity.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Player.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Tongue.cpp

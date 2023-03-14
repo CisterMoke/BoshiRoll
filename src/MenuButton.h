@@ -20,9 +20,9 @@ enum ButtonState
 
 class MenuButton
 {
-	std::array<std::unique_ptr<BaseSprite>, BUTTON_STATE_NUM> sprites;
-	rect_t rect;
-	ButtonState state = BUTTON_DEFAULT;
+	std::array<std::shared_ptr<BaseSprite>, BUTTON_STATE_NUM> sprites{};
+	rect_t rect{};
+	ButtonState state{ BUTTON_DEFAULT };
 
 	bool in_bounds(int x, int y);
 
@@ -32,9 +32,10 @@ public:
 	BaseSprite &get_sprite() const;
 	BaseSprite &get_sprite(ButtonState state) const;
 
-	MenuButton &set_sprite(ButtonState state, const BaseSprite &other);
+	MenuButton &set_sprite(ButtonState state, std::shared_ptr<BaseSprite> sprite);
 	MenuButton &set_sprite(ButtonState state, std::string path);
 	MenuButton &set_sprite(ButtonState state, std::string path, int mode);
+	MenuButton &copy_sprites(const MenuButton &other);
 
 	int center_x() const;
 	int center_y() const;

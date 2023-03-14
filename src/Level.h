@@ -2,37 +2,44 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <list>
 #include "globals.h"
 #include "BaseSprite.h"
 #include "Colliders.h"
 #include "Enemy.h"
 #include "Vec2.h"
 
+
 class Level
 {
 
 private:
 
-	Level();
 
-	std::shared_ptr<BaseSprite> background = nullptr;
-	std::shared_ptr<BaseSprite> foreground = nullptr;
+	std::shared_ptr<BaseSprite> background{};
+	std::shared_ptr<BaseSprite> foreground{};
+	
+	bool initialized{};
+	Vec2 spawn{};
+
+	std::vector< std::unique_ptr<BaseCollider>> colliders{};
+	std::list<Enemy> enemies{}; // use linked list to prevent deleted copy constructor being called
+	std::vector<Vec2> checkpoints{};
 
 public:
+	Level() = default;
 
-	std::vector<std::shared_ptr<BaseCollider>> colliders = {};
-	std::vector<std::shared_ptr<Enemy>> enemies = {};
-	Vec2 spawn = Vec2(0.0f, 0.0f);
-	std::vector<Vec2> checkpoints = {};
+	bool is_init();
+	void init();
 
-	static Level init_level();
-
-	Level(const Level &other);
+	const Vec2 get_spawn() const;
+	const std::list<Enemy> &get_enemies();
+	const std::vector<BaseCollider*> get_colliders() const;
 	
 	BaseSprite &get_background();
 	BaseSprite &get_foreground();
-	Level *set_background(std::shared_ptr<BaseSprite> background);
-	Level *set_foreground(std::shared_ptr<BaseSprite> foreground);
+	Level &set_background(std::shared_ptr<BaseSprite> background);
+	Level &set_foreground(std::shared_ptr<BaseSprite> foreground);
 
 };
 

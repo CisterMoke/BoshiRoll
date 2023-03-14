@@ -11,7 +11,6 @@ struct Vec2
 
 	Vec2() :x(0), y(0) {};
 	Vec2(float x, float y);
-	Vec2(const Vec2 &v);
 
 	float dot(const Vec2 &v) const;
 	float cross(const Vec2 &v) const;

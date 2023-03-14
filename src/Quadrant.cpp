@@ -26,4 +26,5 @@ Vec2 to_vec(Quadrant q)
 	case Quadrant::IV:
 		return Vec2(-1.0f, -1.0f);
 	}
+	return Vec2();
 }

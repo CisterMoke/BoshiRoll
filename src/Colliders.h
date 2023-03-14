@@ -17,8 +17,8 @@ struct BaseCollider
 	BaseCollider() = default;
 	BaseCollider(std::shared_ptr<Vec2> p);
 
-	bool virtual check_collision(CircleCollider &c, Vec2 *cptr = nullptr) = 0;
-	Vec2 virtual collision_disp(CircleCollider &c, Vec2 *cptr = nullptr) = 0;
+	bool virtual check_collision(CircleCollider &c, Vec2 *cptr = nullptr) const = 0;
+	Vec2 virtual collision_disp(CircleCollider &c, Vec2 *cptr = nullptr) const = 0;
 	virtual BaseRenderCommand *create_cmd(Camera *camera = nullptr, SDL_Color color = {180, 0, 180}) = 0;
 };
 
@@ -32,9 +32,9 @@ struct CircleCollider : public BaseCollider
 	CircleCollider(std::shared_ptr<Vec2>  p, float radius);
 	CircleCollider(float x, float y, float radius);
 
-	bool check_collision(CircleCollider &c, Vec2 *cptr = nullptr);
-	Vec2 collision_disp(CircleCollider &c, Vec2 *cptr = nullptr);
-	Vec2 anti_collision_disp(CircleCollider &c, Vec2 *cptr = nullptr);
+	bool check_collision(CircleCollider &c, Vec2 *cptr = nullptr) const;
+	Vec2 collision_disp(CircleCollider &c, Vec2 *cptr = nullptr) const;
+	Vec2 anti_collision_disp(CircleCollider &c, Vec2 *cptr = nullptr) const;
 	virtual BaseRenderCommand *create_cmd(Camera *camera = nullptr, SDL_Color color = { 180, 0, 180 });
 };
 
@@ -46,8 +46,8 @@ struct LineCollider : public BaseCollider
 	LineCollider() = default;
 	LineCollider(std::shared_ptr<Vec2> start, std::shared_ptr<Vec2> stop);
 
-	bool check_collision(CircleCollider &c, Vec2 *cptr = nullptr);
-	Vec2 collision_disp(CircleCollider &c, Vec2 *cptr = nullptr);
+	bool check_collision(CircleCollider &c, Vec2 *cptr = nullptr) const;
+	Vec2 collision_disp(CircleCollider &c, Vec2 *cptr = nullptr) const;
 	virtual BaseRenderCommand *create_cmd(Camera *camera = nullptr, SDL_Color color = { 180, 0, 180 });
 };
 
@@ -60,10 +60,10 @@ struct RectCollider : public BaseCollider
 	RectCollider(std::shared_ptr<Vec2>  p, float width, float height);
 	RectCollider(float x, float y, float width, float height);
 
-	bool check_collision(CircleCollider &c, Vec2 *cptr = nullptr);
-	bool check_collision(RectCollider &r);
-	Vec2 collision_disp(CircleCollider &c, Vec2 *cptr = nullptr);
-	Vec2 collision_disp(RectCollider &r);
+	bool check_collision(CircleCollider &c, Vec2 *cptr = nullptr) const;
+	bool check_collision(RectCollider &r) const;
+	Vec2 collision_disp(CircleCollider &c, Vec2 *cptr = nullptr) const;
+	Vec2 collision_disp(RectCollider &r) const;
 	virtual BaseRenderCommand *create_cmd(Camera *camera = nullptr, SDL_Color color = { 180, 0, 180 });
 };
 
@@ -80,7 +80,7 @@ struct RampCollider : public BaseCollider
 	RampCollider(std::shared_ptr<Vec2>  p, float size, Quadrant quadrant);
 	RampCollider(float x, float y, float size, Quadrant quadrant);
 	~RampCollider();
-	bool check_collision(CircleCollider &c, Vec2 *cptr = nullptr);
-	Vec2 collision_disp(CircleCollider &c, Vec2 *cptr = nullptr);
+	bool check_collision(CircleCollider &c, Vec2 *cptr = nullptr) const;
+	Vec2 collision_disp(CircleCollider &c, Vec2 *cptr = nullptr) const;
 	virtual BaseRenderCommand *create_cmd(Camera *camera = nullptr, SDL_Color color = { 180, 0, 180 });
 };

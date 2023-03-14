@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 #include <memory>
+#include <box2d.h>
 #include "globals.h"
 #include "Colliders.h"
 #include "Player.h"
@@ -11,8 +12,8 @@
 class Game
 {
 public:
-	std::unique_ptr<Player> player;
-	std::unique_ptr<Level> currLevel;
+	Player player;
+	Level curr_level;
 	Camera &camera;
 
 	// Physics
@@ -24,7 +25,7 @@ public:
 	float bounciness = 0.2f;
 
 
-	Game(const Player &player, const Level &level, Camera &camera);
+	Game(Camera &camera);
 
 	bool is_paused();
 	bool is_over();

@@ -13,7 +13,7 @@ private:
 	float elements[2][2] = { {0.0f, 0.0f}, {0.0f, 0.0f } };
 
 public:
-	Mat22();
+	Mat22() = default;
 	Mat22(float x1, float x2, float x3, float x4);
 	Mat22(float m[2][2]);
 

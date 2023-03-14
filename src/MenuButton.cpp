@@ -13,9 +13,9 @@ BaseSprite &MenuButton::get_sprite(ButtonState state) const
 	return *sprites[state];
 }
 
-MenuButton &MenuButton::set_sprite(ButtonState state, const BaseSprite &other)
+MenuButton &MenuButton::set_sprite(ButtonState state, std::shared_ptr<BaseSprite> sprite)
 {
-	sprites[state] = std::make_unique<BaseSprite>(other);
+	sprites[state] = sprite;
 	sprites[state]->set_width(rect[2] - rect[0]);
 	sprites[state]->set_height(rect[3] - rect[1]);
 	return *this;
@@ -23,15 +23,19 @@ MenuButton &MenuButton::set_sprite(ButtonState state, const BaseSprite &other)
 
 MenuButton &MenuButton::set_sprite(ButtonState state, std::string path)
 {
-	BaseSprite new_sprite = BaseSprite(path);
-	set_sprite(state, new_sprite);
+	set_sprite(state, std::make_shared<BaseSprite>(path));
 	return *this;
 }
 
 MenuButton &MenuButton::set_sprite(ButtonState state, std::string path, int mode)
 {
-	BaseSprite new_sprite = BaseSprite(path, mode);
-	set_sprite(state, new_sprite);
+	set_sprite(state, std::make_shared<BaseSprite>(path, mode));
+	return *this;
+}
+
+MenuButton &MenuButton::copy_sprites(const MenuButton &other)
+{
+	sprites = other.sprites;
 	return *this;
 }
 

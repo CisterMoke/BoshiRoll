@@ -17,7 +17,6 @@ class BaseSprite
 	friend class Entity;
 public:
 	BaseSprite(std::string path, int mode = ALPHA | COLORKEY);
-	BaseSprite(const BaseSprite &other);
 
 	bool load_from_file(std::string path, int mode = ALPHA | COLORKEY);
 
@@ -41,15 +40,15 @@ protected:
 	BaseSprite() = default;
 	void clear_mem();
 
-	int w = 0;
-	int h = 0;
-	float theta = 0.0;
-	float scale_x = 1.0;
-	float scale_y = 1.0;
-	SDL_RendererFlip _flip = SDL_FLIP_NONE;
+	int w{ 0 };
+	int h{ 0 };
+	float theta{ 0.0 };
+	float scale_x{ 1.0 };
+	float scale_y{ 1.0 };
+	SDL_RendererFlip _flip{ SDL_FLIP_NONE };
 
-	std::shared_ptr<SDL_Texture> texture = nullptr;
-	std::shared_ptr<SDL_Surface> base_surf = nullptr;
+	std::shared_ptr<SDL_Texture> texture{};
+	std::shared_ptr<SDL_Surface> base_surf{};
 
 };
 

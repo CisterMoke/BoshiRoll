@@ -1,7 +1,6 @@
 #include "Mat22.h"
 #include "Vec2.h"
 
-Mat22::Mat22() {}
 Mat22::Mat22(float x1, float x2, float x3, float x4)
 {
 	elements[0][0] = x1;

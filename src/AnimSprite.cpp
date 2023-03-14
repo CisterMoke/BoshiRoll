@@ -5,15 +5,6 @@ AnimSprite::AnimSprite(std::string path, frame_dim_t frame_dim, int mode)
 	load_from_file(path, frame_dim, mode);
 }
 
-AnimSprite::AnimSprite(const AnimSprite &other): BaseSprite(other)
-{
-	num_frames = other.num_frames;
-	curr_frame = other.curr_frame;
-	anim_delay = other.anim_delay;
-	frame_dim = other.frame_dim;
-	frame_rects = other.frame_rects;
-}
-
 
 bool AnimSprite::load_from_file(std::string path, int mode)
 {

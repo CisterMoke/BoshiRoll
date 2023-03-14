@@ -1,18 +1,16 @@
 #pragma once
-#include <SDL.h>
-#include "Camera.h"
 #include "globals.h"
+#include "Camera.h"
 #include "RenderCommands.h"
+#include <SDL.h>
 
 class Renderer
 {
 
 public:
-	SDL_Renderer *renderer;
+	SDL_Renderer *renderer{};
 
-	Renderer();
+	Renderer() = default;
 	Renderer(SDL_Window *window);
-	~Renderer();
 	void render_all();
-
 };

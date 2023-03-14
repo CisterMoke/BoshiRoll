@@ -9,13 +9,13 @@ CircleCollider::CircleCollider(std::shared_ptr<Vec2> p, float radius)
 CircleCollider::CircleCollider(float x, float y, float radius)
 	: CircleCollider(std::shared_ptr<Vec2>(new Vec2(x, y)), radius) {}
 
-bool CircleCollider::check_collision(CircleCollider &c, Vec2 *cptr)
+bool CircleCollider::check_collision(CircleCollider &c, Vec2 *cptr) const
 {
 	float dist = this->pos->dist(*c.pos);
 	return dist < this->r + c.r;
 }
 
-Vec2 CircleCollider::collision_disp(CircleCollider &c, Vec2 *cptr)
+Vec2 CircleCollider::collision_disp(CircleCollider &c, Vec2 *cptr) const
 {
 	Vec2 dir = *c.pos - *this->pos;
 	float d = dir.norm() - this->r + c.r ;
@@ -23,7 +23,7 @@ Vec2 CircleCollider::collision_disp(CircleCollider &c, Vec2 *cptr)
 	return dir.normalize() * d;
 }
 
-Vec2 CircleCollider::anti_collision_disp(CircleCollider &c, Vec2 *cptr)
+Vec2 CircleCollider::anti_collision_disp(CircleCollider &c, Vec2 *cptr) const
 {
 	Vec2 dir = *this->pos - *c.pos;
 	float d = dir.norm() - this->r + c.r;
@@ -39,7 +39,7 @@ BaseRenderCommand *CircleCollider::create_cmd(Camera *camera, SDL_Color color)
 LineCollider::LineCollider(std::shared_ptr<Vec2>  start, std::shared_ptr<Vec2>  stop)
 	: BaseCollider(std::shared_ptr<Vec2> (new Vec2((*start + *stop) * 2))), start(start), stop(stop) {}
 
-bool LineCollider::check_collision(CircleCollider &c, Vec2 *cptr)
+bool LineCollider::check_collision(CircleCollider &c, Vec2 *cptr) const
 {
 	Vec2 dir = *this->stop - *this->start;
 	Vec2 ac = *c.pos - *this->start;
@@ -56,7 +56,7 @@ bool LineCollider::check_collision(CircleCollider &c, Vec2 *cptr)
 	return false;
 }
 
-Vec2 LineCollider::collision_disp(CircleCollider &c, Vec2 *cptr)
+Vec2 LineCollider::collision_disp(CircleCollider &c, Vec2 *cptr) const
 {
 	bool local = (cptr == nullptr);
 	if (local)
@@ -84,7 +84,7 @@ RectCollider::RectCollider(std::shared_ptr<Vec2> lu, float width, float height)
 RectCollider::RectCollider(float x, float y, float width, float height)
 	: RectCollider(std::shared_ptr<Vec2>(new Vec2(x, y)), width, height) {}
 
-bool RectCollider::check_collision(CircleCollider &c, Vec2 *cptr)
+bool RectCollider::check_collision(CircleCollider &c, Vec2 *cptr) const
 {
 	Vec2 closest = Vec2(0.0f, 0.0f);
 	Vec2 &cp = *c.pos;
@@ -122,7 +122,7 @@ bool RectCollider::check_collision(CircleCollider &c, Vec2 *cptr)
 	return dist < c.r;
 }
 
-bool RectCollider::check_collision(RectCollider &r)
+bool RectCollider::check_collision(RectCollider &r) const
 {
 	Vec2 &tp = *this->lu;
 	Vec2 &rp = *r.lu;
@@ -138,7 +138,7 @@ bool RectCollider::check_collision(RectCollider &r)
 	return true;
 }
 
-Vec2 RectCollider::collision_disp(CircleCollider &c, Vec2 *cptr)
+Vec2 RectCollider::collision_disp(CircleCollider &c, Vec2 *cptr) const
 {
 	bool local = (cptr == nullptr);
 	if (local)
@@ -167,7 +167,7 @@ Vec2 RectCollider::collision_disp(CircleCollider &c, Vec2 *cptr)
 	return dir.normalize() * d;
 }
 
-Vec2 RectCollider::collision_disp(RectCollider &r)
+Vec2 RectCollider::collision_disp(RectCollider &r) const
 {
 	Vec2 &tp = *this->lu;
 	Vec2 &rp = *r.lu;
@@ -217,7 +217,7 @@ RampCollider::~RampCollider()
 	delete circ, rect, line;
 }
 
-bool RampCollider::check_collision(CircleCollider &c, Vec2 *cptr)
+bool RampCollider::check_collision(CircleCollider &c, Vec2 *cptr) const
 {
 	if (!rect->check_collision(c, cptr))
 	{
@@ -247,7 +247,7 @@ bool RampCollider::check_collision(CircleCollider &c, Vec2 *cptr)
 	}
 }
 
-Vec2 RampCollider::collision_disp(CircleCollider &c, Vec2 *cptr)
+Vec2 RampCollider::collision_disp(CircleCollider &c, Vec2 *cptr) const
 {
 	bool local = (cptr == nullptr);
 	if (local)

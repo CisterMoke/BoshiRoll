@@ -13,10 +13,12 @@
 
 class Menu
 {
+private:
+	std::shared_ptr<MenuScreen> root;
 protected:
-	std::deque<std::shared_ptr<MenuScreen>> screens = {};
-	bool closed = false;
-	int next_idx = -1;
+	std::deque<MenuScreen*> screens{};
+	bool closed{ false };
+	int next_idx{ -1 };
 
 public:
 	Menu(std::shared_ptr<MenuScreen> start_screen);
@@ -43,7 +45,7 @@ public:
 
 class PauseMenu : public Menu
 {
-	bool game_resume = false;
+	bool game_resume{ false };
 	std::shared_ptr<MenuScreen> initialize_screens();
 public:
 	PauseMenu();

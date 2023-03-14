@@ -1,20 +1,14 @@
-//Using SDL and standard IO
 #define SDL_MAIN_HANDLED
-#include <SDL.h>
-#include <SDL_image.h>
-#include <SDL_ttf.h>
 #include <memory>
 #include <iostream>
 #include <sstream>
+#include <SDL.h>
+#include <SDL_image.h>
+#include <SDL_ttf.h>
 #include "globals.h"
 #include "utils.h"
 #include "debug.h"
-#include "BaseSprite.h"
-#include "AnimSprite.h"
 #include "FontSprite.h"
-#include "Colliders.h"
-#include "Player.h"
-#include "Level.h"
 #include "Game.h"
 #include "Camera.h"
 #include "Renderer.h"
@@ -26,21 +20,20 @@ bool load_media();
 void close();
 
 //Main surfaces and textures
-SDL_Surface *g_title_img = nullptr;
-SDL_Texture *g_title_text = nullptr;
+SDL_Surface *g_title_img{};
+SDL_Texture *g_title_text{};
 
-SDL_Surface *g_surf = nullptr;
-SDL_Texture *g_texture = nullptr;
+SDL_Surface *g_surf{};
+SDL_Texture *g_texture{};
 
 Renderer renderer;
 FontSprite *title_font;
 FontSprite *debug_font;
 
-std::unique_ptr<MainMenu> main_menu;
-std::unique_ptr<PauseMenu> pause_menu;
+std::unique_ptr<MainMenu> main_menu{};
+std::unique_ptr<PauseMenu> pause_menu{};
 
-std::shared_ptr<BaseSprite> boshi_sprite;
-std::unique_ptr<Game> game;
+std::unique_ptr<Game> game{};
 Camera cam = Camera();
 SDL_Color collor = { 180, 0, 180 };
 
@@ -109,15 +102,12 @@ bool load_media()
 
 	debug_font = new FontSprite(load_font(glob::COMIC_FONT_BOLD, 16));
 
-	boshi_sprite = std::shared_ptr<BaseSprite>(new BaseSprite(glob::BOSHI_IMG_BMP));
-	boshi_sprite->zoom(0.5f, 0.5f);
-
 	return true;
 }
 
 void load_game()
 {
-	game.reset(new Game(Player(boshi_sprite), Level::init_level(), cam));
+	game.reset(new Game(cam));
 }
 
 void close()
@@ -168,8 +158,8 @@ void do_action(SDL_Event &event)
 			break;
 
 		case SDLK_r:
-			game->player->pos = Vec2(glob::SCREEN_WIDTH / 2, glob::SCREEN_HEIGHT / 2);
-			game->player->stop();
+			game->player.pos = Vec2(glob::SCREEN_WIDTH / 2, glob::SCREEN_HEIGHT / 2);
+			game->player.stop();
 			break;
 		case SDLK_F3:
 			if (glob::DEBUG_MODE == DEBUG_OFF) { glob::DEBUG_MODE = DEBUG_ALL; }
@@ -191,13 +181,13 @@ void do_action(SDL_Event &event)
 		}
 
 	}
-	game->player->do_action(event);
+	game->player.do_action(event);
 }
 
 float title_angle = 0.0f;
 void render()
 {
-	if (main_menu != nullptr)
+	if (main_menu.get() != nullptr)
 	{
 		title_font->rotate_tot(1.5f);
 		SDL_RenderClear(glob::g_renderer);
@@ -209,7 +199,7 @@ void render()
 		
 	}
 
-	else if (game != nullptr)
+	else if (game.get() != nullptr)
 	{
 		Vec2 orig = cam.get_origin();
 		Vec2 off = Vec2(glob::SCREEN_WIDTH / 2, glob::SCREEN_HEIGHT / 2);
@@ -217,29 +207,29 @@ void render()
 
 		if ((glob::DEBUG_MODE & DEBUG_DRAW) == DEBUG_DRAW)
 		{
-			for (auto &collider : game->currLevel->colliders)
+			for (auto &collider : game->curr_level.get_colliders())
 			{
 				render_command_pool.push_back(collider->create_cmd(&cam));
 			}
 
-			for (auto &enemy : game->currLevel->enemies)
+			for (auto &enemy : game->curr_level.get_enemies())
 			{
-				render_command_pool.push_back(enemy->collider->create_cmd(&cam));
+				render_command_pool.push_back(enemy.collider->create_cmd(&cam));
 			}
 
-			render_command_pool.push_back(game->player->collider->create_cmd(&cam));
+			render_command_pool.push_back(game->player.collider->create_cmd(&cam));
 
-			if (game->player->get_tongue().get_state() != TongueState::IDLE)
+			if (game->player.get_tongue().get_state() != TongueState::IDLE)
 			{
-				render_command_pool.push_back(game->player->get_tongue().parts[0]->collider->create_cmd(&cam));
+				render_command_pool.push_back(game->player.get_tongue().parts[0]->collider->create_cmd(&cam));
 			}
 		}
 
 		if ((glob::DEBUG_MODE & DEBUG_INFO) == DEBUG_INFO) {
-			push_entity_info_render_command(game->player.get(), debug_font);
+			push_entity_info_render_command(&game->player, debug_font);
 		}
 		
-		if (pause_menu != nullptr)
+		if (pause_menu.get() != nullptr)
 		{
 			pause_menu->push_render_cmds();
 		}
@@ -249,6 +239,7 @@ void render()
 
 	SDL_SetRenderDrawColor(glob::g_renderer, 255, 255, 255, 255);
 	SDL_RenderPresent(glob::g_renderer);
+
 }
 
 int main(int argc, char *argv[])
@@ -279,7 +270,7 @@ int main(int argc, char *argv[])
 				quit = true;
 				break;
 			}
-			else if (main_menu != nullptr)
+			else if (main_menu.get() != nullptr)
 			{
 				main_menu->handle_input(e);
 				if (main_menu->get_game_start())
@@ -291,18 +282,13 @@ int main(int argc, char *argv[])
 				{
 					main_menu.reset();
 					quit = true;
+					break;
 				}
 			}
 
 			else if (game->is_paused())
 			{
-				if (pause_menu == nullptr) {
-					pause_menu.reset(new PauseMenu());
-					pause_menu.reset(new PauseMenu());
-					pause_menu.reset(new PauseMenu());
-					pause_menu.reset(new PauseMenu());
-					pause_menu.reset(new PauseMenu());
-					pause_menu.reset(new PauseMenu());
+				if (pause_menu.get() == nullptr) {
 					pause_menu.reset(new PauseMenu());
 				}
 				pause_menu->handle_input(e);
@@ -340,7 +326,7 @@ int main(int argc, char *argv[])
 			tic(render_timer);
 			render();
 		}
-		if (game != nullptr && toc(game_timer) / 1000.0 > 1.0 / glob::GAMETICKS)
+		if (game.get() != nullptr && toc(game_timer) / 1000.0 > 1.0 / glob::GAMETICKS)
 		{
 			tic(game_timer);
 			game->tick();

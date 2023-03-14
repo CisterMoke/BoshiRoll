@@ -5,15 +5,6 @@ BaseSprite::BaseSprite(std::string path, int mode)
 	load_from_file(path, mode);
 }
 
-BaseSprite::BaseSprite(const BaseSprite & other)
-{
-	base_surf = other.base_surf;
-	texture = other.texture;
-
-	w = other.w; h = other.h; theta = other.theta; scale_x = other.scale_x, scale_y = other.scale_y;
-	_flip = other._flip;
-}
-
 bool BaseSprite::load_from_file(std::string path, int mode)
 {
 	reset();

@@ -14,20 +14,21 @@ void MenuScreen::reset_current()
 
 bool MenuScreen::is_closed() { return closed; }
 
-std::shared_ptr<MenuScreen> &MenuScreen::get_next(int i)
+MenuScreen &MenuScreen::get_next(int i)
 {
-	return next_screens[i];
+	return *next_screens[i];
 }
 
-std::shared_ptr<MenuScreen> &MenuScreen::get_last_added()
+MenuScreen &MenuScreen::add_next()
 {
-	return next_screens.back();
+	next_screens.push_back(std::make_shared<MenuScreen>());
+	return *next_screens.back();
 }
 
 MenuScreen &MenuScreen::add_next(std::shared_ptr<MenuScreen> next)
 {
 	next_screens.push_back(next);
-	return *this;
+	return *next_screens.back();
 }
 
 MenuScreen &MenuScreen::add_button(

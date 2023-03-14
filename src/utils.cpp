@@ -59,4 +59,5 @@ std::string debug_mode_string()
 	case DEBUG_ALL:
 		return "ALL";
 	};
+	return "";
 }

@@ -3,9 +3,6 @@
 Vec2::Vec2(float x, float y)
 	: x(x), y(y) {}
 
-Vec2::Vec2(const Vec2 &v)
-	: x(v.x), y(v.y) {}
-
 float Vec2::dot(const Vec2 &v) const
 {
 	return x * v.x + y * v.y;

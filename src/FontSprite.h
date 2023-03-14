@@ -1,11 +1,12 @@
 #pragma once
-#include <SDL_ttf.h>
 #include <array>
 #include <memory>
 #include <regex>
 #include <string>
 #include <utility>
 #include <vector>
+#include "globals.h"
+#include <SDL_ttf.h>
 #include "BaseSprite.h"
 #include "Mat22.h"
 #include "FontTextureCache.h"
@@ -17,8 +18,6 @@ public:
 
 	FontSprite(TTF_Font *font);
 	FontSprite(std::string text, std::string path, int size, SDL_Color color = {0, 0, 0});
-	FontSprite(const FontSprite &other);
-
 
 	void set_text(std::string text);
 	void set_color(SDL_Color color);
@@ -36,19 +35,19 @@ public:
 	Mat22 get_cursor_transform();
 
 protected:
-	std::string txt;
-	std::vector<Vec2> offsets;
-	std::vector<std::string> substrings;
-	SDL_Color colr = { 0, 0, 0 };
-	std::shared_ptr<TTF_Font> _font;
-	int tabsize = 50;
-	int linespace;
-	std::unique_ptr<FontTextureCache> texture_cache;
-	int curr_offset = -1; int curr_char = -1;
-	Vec2 cursor = Vec2(0.0f, 0.0f);
-	int w_tot, h_tot = 0;
-	float tot_theta = 0;
+	std::string txt{};
+	std::vector<Vec2> offsets{};
+	std::vector<std::string> substrings{};
+	SDL_Color colr { 0, 0, 0 };
+	int tabsize{ 50 };
+	int linespace{};
+	int curr_offset{ -1 }; int curr_char{ -1 };
+	Vec2 cursor{ 0.0f, 0.0f };
+	int w_tot, h_tot{ 0 };
+	float tot_theta{ 0 };
 
+	std::shared_ptr<TTF_Font> _font{};
+	FontTextureCache texture_cache{};
 
 private:
 	void create_char_texture(char c);

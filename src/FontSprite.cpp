@@ -1,7 +1,7 @@
 #include "FontSprite.h"
 
 FontSprite::FontSprite(TTF_Font *font)
-	:_font(font, TTF_CloseFont), texture_cache(new FontTextureCache())
+	:_font(font, TTF_CloseFont)
 {
 	set_text(" ");
 	TTF_SizeText(_font.get(), "A", nullptr, &linespace);
@@ -12,15 +12,6 @@ FontSprite::FontSprite(std::string text, std::string path, int size, SDL_Color c
 {
 	colr = color;
 	set_text(text);
-}
-
-FontSprite::FontSprite(const FontSprite &other)
-	: BaseSprite(other), txt(other.txt), offsets(other.offsets), substrings(other.substrings),
-	colr(other.colr), _font(other._font), tabsize(other.tabsize), linespace(other.linespace),
-	curr_offset(other.curr_offset), curr_char(other.curr_char),
-	cursor(other.cursor), w_tot(other.w_tot), h_tot(other.h_tot)
-{
-	texture_cache = std::make_unique<FontTextureCache>(*other.texture_cache);
 }
 
 void FontSprite::set_text(std::string text)
@@ -60,8 +51,8 @@ void FontSprite::start_iter()
 {
 	curr_offset = 0; curr_char = 0;
 	char c = substrings[curr_offset][curr_char];
-	texture = texture_cache->get_texture(c);
-	Vec2 dims = *texture_cache->get_dim(c);
+	texture = texture_cache.get_texture(c);
+	Vec2 dims = texture_cache.get_dim(c);
 	w = dims.x; h = dims.y;
 	cursor = Vec2(0.0f, 0.0f);
 }
@@ -81,8 +72,8 @@ bool FontSprite::next_iter()
 		cursor = offsets[curr_offset];
 	}
 	char c = substrings[curr_offset][curr_char];
-	texture = texture_cache->get_texture(c);
-	Vec2 dims = *texture_cache->get_dim(c);
+	texture = texture_cache.get_texture(c);
+	Vec2 dims = texture_cache.get_dim(c);
 	w = dims.x; h = dims.y;
 	return true;
 }
@@ -194,7 +185,7 @@ void FontSprite::populate_cache()
 	int tot_w = 0;
 	int tot_h = offsets[offsets.size() - 1].y + linespace;
 
-	texture_cache->insert(0, std::shared_ptr<SDL_Texture>(), Vec2());
+	texture_cache.insert(0, std::shared_ptr<SDL_Texture>(), Vec2());
 
 	for (int i = 0; i < substrings.size(); i++)
 	{
@@ -203,11 +194,11 @@ void FontSprite::populate_cache()
 		for (char c : sub)
 		{
 			if (c < 1 && c > 127) { continue; }
-			else if (!texture_cache->contains(c)) { 
+			else if (!texture_cache.contains(c)) { 
 				create_char_texture(c); 
-				texture_cache->insert(c, texture, Vec2(w, h));
+				texture_cache.insert(c, texture, Vec2(w, h));
 			}
-			linewidth += texture_cache->get_dim(c)->x;
+			linewidth += texture_cache.get_dim(c).x;
 		}
 		if (linewidth + offsets[i].x > tot_w) { tot_w = linewidth + offsets[i].x; }
 	}
@@ -220,7 +211,7 @@ void FontSprite::populate_cache()
 
 void FontSprite::clear_cache()
 {
-	texture_cache->clear();
+	texture_cache.clear();
 	base_surf.reset();
 	texture.reset();
 }

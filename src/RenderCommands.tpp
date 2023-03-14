@@ -15,7 +15,7 @@ void RenderSpriteCommand<Sprite>::_render_sprite_cam(SDL_Renderer *renderer)
 	Vec2 off = Vec2((glob::SCREEN_WIDTH - w_hat) / 2, (glob::SCREEN_HEIGHT - h_hat) / 2);
 	if (!center) { pos += Vec2(sprite->get_width() / 2, sprite->get_height() / 2); }
 	Vec2 lu = camera->get_transform() * (pos - camera->get_origin()) + off;
-	SDL_Rect dest = { lu.x, lu.y, w_hat, h_hat };
+	SDL_Rect dest = { (int)lu.x, (int)lu.y, (int)w_hat, (int)h_hat };
 	SDL_RenderCopyEx(renderer, sprite->get_texture(), clip, &dest, sprite->get_theta() - camera->theta, NULL, sprite->get_flip());
 }
 
@@ -27,6 +27,6 @@ void RenderSpriteCommand<Sprite>::_render_sprite_no_cam(SDL_Renderer *renderer)
 	Vec2 off = Vec2(0.0f, 0.0f);
 	if (center) { off -= Vec2(w_hat / 2, h_hat / 2); }
 	Vec2 lu = pos + off;
-	SDL_Rect dest = { lu.x, lu.y, w_hat, h_hat };
+	SDL_Rect dest = { (int)lu.x, (int)lu.y, (int)w_hat, (int)h_hat };
 	SDL_RenderCopyEx(renderer, sprite->get_texture(), clip, &dest, sprite->get_theta(), NULL, sprite->get_flip());
 }

@@ -1,10 +1,10 @@
 #pragma once
-#include <SDL.h>
-#include<SDL2_gfxPrimitives.h>
 #include <algorithm>
 #include <deque>
-#include "Camera.h"
 #include "globals.h"
+#include <SDL.h>
+#include<SDL2_gfxPrimitives.h>
+#include "Camera.h"
 #include "Mat22.h"
 #include "Sprites.h"
 #include "Vec2.h"

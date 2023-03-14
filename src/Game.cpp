@@ -1,11 +1,15 @@
 #include "Game.h"
 
-Game::Game(const Player &player, const Level &level, Camera &camera)
-	:player(std::make_unique<Player>(player)), currLevel(std::make_unique<Level>(level)), camera(camera)
+Game::Game(Camera &camera)
+	: player(std::make_shared<BaseSprite>(glob::BOSHI_IMG_BMP)), 
+	curr_level(), camera(camera)
 {
-	this->player->pos = currLevel->spawn;
-	this->camera.set_origin(this->player->pos);
-	this->camera.rx = 0.5; this->camera.ry = 0.5;
+	curr_level.init();
+	player.sprite->zoom(0.5f, 0.5f);
+	player.collider->r = player.collider->r * 0.5f;
+	player.pos = curr_level.get_spawn();
+	camera.set_origin(player.pos);
+	camera.rx = 0.5; camera.ry = 0.5;
 }
 
 bool Game::is_paused() { return paused; }
@@ -14,7 +18,7 @@ bool Game::is_over() { return over; }
 
 void Game::reset()
 {
-	this->player->pos = currLevel->spawn;
+	player.pos = curr_level.get_spawn();
 }
 
 void Game::pause() { paused = true; }
@@ -26,40 +30,40 @@ void Game::end() { over = true; }
 
 void Game::tick()
 {
-	apply_air_friction(*player);
-	player->update();
+	apply_air_friction(player);
+	player.update();
 
 	check_collisions();
 
-	player->t_force += Vec2(0, g * player->mass);
-	player->get_tongue().apply_gravity(g);
+	player.t_force += Vec2(0, g * player.mass);
+	player.get_tongue().apply_gravity(g);
 }
 
 void Game::push_render_commands()
 {
-	RenderParallaxCommand *background_msg = new RenderParallaxCommand(&currLevel->get_background(), &camera, Vec2(0.0f, 0.0f), 0.0f, true);
+	RenderParallaxCommand *background_msg = new RenderParallaxCommand(&curr_level.get_background(), &camera, Vec2(0.0f, 0.0f), 0.0f, true);
 	render_command_pool.emplace_front(background_msg);
 
-	for (auto enemy : currLevel->enemies)
+	for (auto &enemy : curr_level.get_enemies())
 	{
-		RenderSpriteCommand<AnimSprite> *enemy_msg = new RenderSpriteCommand(enemy->sprite.get(), &camera, enemy->pos);
+		RenderSpriteCommand<AnimSprite> *enemy_msg = new RenderSpriteCommand(enemy.sprite.get(), &camera, enemy.pos);
 		render_command_pool.push_back(enemy_msg);
 	}
 
-	RenderSpriteCommand<BaseSprite> *player_msg = new RenderSpriteCommand(player->sprite.get(), &camera, player->pos);
+	RenderSpriteCommand<BaseSprite> *player_msg = new RenderSpriteCommand(player.sprite.get(), &camera, player.pos);
 	render_command_pool.push_back(player_msg);
 	
-	if (player->get_tongue().get_state() != TongueState::IDLE)
+	if (player.get_tongue().get_state() != TongueState::IDLE)
 	{
-		for (int i = 0; i < player->get_tongue().get_reel() + 1; i++)
+		for (int i = 0; i < player.get_tongue().get_reel() + 1; i++)
 		{
-			TonguePart &tp = *player->get_tongue().parts[i];
+			TonguePart &tp = *player.get_tongue().parts[i];
 			render_command_pool.push_back( new RenderSpriteCommand(tp.sprite.get(), &camera, tp.pos));
 		}
-		render_command_pool.push_back(new RenderSpriteCommand(player->get_tongue().tongue_end.get(), &camera, player->pos));
+		render_command_pool.push_back(new RenderSpriteCommand(player.get_tongue().tongue_end.get(), &camera, player.pos));
 	}
 
-	RenderParallaxCommand *foreground_msg = new RenderParallaxCommand(&currLevel->get_foreground(), &camera, Vec2(0.0f, 100.0f), 1.0f);
+	RenderParallaxCommand *foreground_msg = new RenderParallaxCommand(&curr_level.get_foreground(), &camera, Vec2(0.0f, 100.0f), 1.0f);
 	render_command_pool.push_back(foreground_msg);
 }
 
@@ -67,33 +71,33 @@ bool Game::check_collisions()
 {
 	Vec2 *cptr = new Vec2(0.0f, 0.0f);
 	bool check = false;
-	for (auto collider : currLevel->colliders)
+	for (auto collider : curr_level.get_colliders())
 	{
-		if (collider->check_collision(*player->collider, cptr))
+		if (collider->check_collision(*player.collider, cptr))
 		{
-			Vec2 disp = collider->collision_disp(*player->collider, cptr);
-			player->teleport(disp);
+			Vec2 disp = collider->collision_disp(*player.collider, cptr);
+			player.teleport(disp);
 
 			Vec2 n_disp = disp.normalize();
-			Vec2 bounce = n_disp * player->vel.dot(n_disp) * (1 + bounciness);
+			Vec2 bounce = n_disp * player.vel.dot(n_disp) * (1 + bounciness);
 			if (bounce.norm2() > 1e-4f)
 			{
-				player->t_force -= bounce;
+				player.t_force -= bounce;
 			}
 
 			Vec2 tangent = n_disp.cross(1.0f);
-			float grip = calculate_grip(fabsf(player->vel.dot(n_disp)));
+			float grip = calculate_grip(fabsf(player.vel.dot(n_disp)));
 			float slip = slip_ratio(tangent);
 			float Ft = traction_force(slip, grip);
-			player->t_force += tangent * Ft;
-			player->r_force += Ft * 180.0f / player->collider->r / M_PI;
+			player.t_force += tangent * Ft;
+			player.r_force += Ft * 180.0f / player.collider->r / M_PI;
 			apply_rolling_friction(grip);
 			check = true;
 		}
-		if (player->get_tongue().get_state() == TongueState::SHOT
-			&& collider->check_collision(*player->get_tongue().get_tip().collider))
+		if (player.get_tongue().get_state() == TongueState::SHOT
+			&& collider->check_collision(*player.get_tongue().get_tip().collider))
 		{
-			player->get_tongue().anchor();
+			player.get_tongue().anchor();
 		}
 	}
 	delete cptr;
@@ -122,13 +126,13 @@ void Game::apply_air_friction(Entity &e)
 
 void Game::apply_rolling_friction(float grip)
 {
-	float vel_norm = player->vel.norm();
+	float vel_norm = player.vel.norm();
 	if (fabsf(vel_norm) < 0.01f)
 	{
-		player->vel = Vec2(0.0f, 0.0f);
+		player.vel = Vec2(0.0f, 0.0f);
 		return;
 	}
-	player->vel -= player->vel * roll_fric * grip;
+	player.vel -= player.vel * roll_fric * grip;
 
 }
 
@@ -141,9 +145,9 @@ float Game::calculate_grip(float Fn, float sigma)
 
 float Game::slip_ratio(Vec2 &dir)
 {
-	float vp = dir.dot(player->vel);
-	float omega = player->omega * M_PI / 180; // convert to radians
-	float r = player->collider->r;
+	float vp = dir.dot(player.vel);
+	float omega = player.omega * M_PI / 180; // convert to radians
+	float r = player.collider->r;
 
 	return (omega * r + vp);// / (fabsf(vp) + fabsf(omega * r) + 1e-6f);
 }
