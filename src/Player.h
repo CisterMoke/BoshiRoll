@@ -1,25 +1,28 @@
 #pragma once
 #include <memory>
+#include <box2d.h>
 #include "Entity.h"
 #include "Tongue.h"
 #include "Vec2.h"
 
 class Player : public Entity
 {
-public:
-    std::unique_ptr<CircleCollider> collider;
+private:
+    SDL_KeyCode held_key = SDLK_UNKNOWN;
+    std::unique_ptr<Tongue> tongue;
 
-    Player(std::shared_ptr<BaseSprite> sprite, const Vec2 &pos = Vec2(0.0f, 0.0f));
-    Player(std::shared_ptr<BaseSprite> sprite, float x, float y);
-    Player(const Player &other);
+protected:
+    virtual b2Body *add_to(b2World &world, const Vec2 &pos);
+
+public:
+
+    Player(std::shared_ptr<BaseSprite> sprite, b2World &world, const Vec2 &pos = {});
+    virtual ~Player() = default;
 
     Tongue &get_tongue();
 
     void do_action(SDL_Event &event);
     void update();
 
-private:
-    SDL_KeyCode held_key = SDLK_UNKNOWN;
-    std::unique_ptr<Tongue> tongue;
 };
 

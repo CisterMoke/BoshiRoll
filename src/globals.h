@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <string_view>
+#include <GL/glew.h>
 #include <SDL.h>
 #include <SDL_ttf.h>
 #include "DebugMode.h"
@@ -11,6 +12,7 @@ namespace glob
 	//Screen dimension inline constexprants
 	inline constexpr int SCREEN_WIDTH{ 640 };
 	inline constexpr int SCREEN_HEIGHT{ 480 };
+	inline constexpr int PX_PER_M{ 100 }; // pixels per meter
 
 	//Strings
 	inline constexpr std::string_view TITLE_TEXT{ "BOOOSHI ROOOLL!! " };
@@ -41,7 +43,17 @@ namespace glob
 	extern SDL_Window *g_window;
 	extern SDL_Renderer *g_renderer;
 	extern SDL_Surface *g_screen;
+	extern SDL_GLContext g_context;
+
+	//OpenGL stuff
+	extern GLuint g_program_id;
+	extern GLint g_vertex_pos_2d_location;
+	extern GLuint g_vbo;
+	extern GLuint g_ibo;
 
 	//Debug config
 	extern DebugMode DEBUG_MODE;
+
+	//Box2D collision categories
+	inline constexpr int PLAYER_GROUP{ -1 };
 };

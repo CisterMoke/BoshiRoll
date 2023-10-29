@@ -8,6 +8,7 @@ add_definitions(-D_USE_MATH_DEFINES)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/sdl2)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/box2d)
 
+set(GLEW_ROOT "${PROJECT_SOURCE_DIR}/../Libs/glew-2.2.0" CACHE PATH "" FORCE)
 set(SDL2_PATH "${PROJECT_SOURCE_DIR}/../Libs/SDL2-2.0.16" CACHE PATH "" FORCE)
 set(SDL2_IMAGE_PATH "${PROJECT_SOURCE_DIR}/../Libs/SDL2_image-2.0.5" CACHE PATH "" FORCE)
 set(SDL2_GFX_PATH "${PROJECT_SOURCE_DIR}/../Libs/SDL2_gfx" CACHE PATH "" FORCE)
@@ -19,6 +20,8 @@ set(REC_DIR "resources")
 set(LIB_DIR "lib")
 
 
+find_package(OpenGL)
+find_package(GLEW REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
 find_package(SDL2_gfx REQUIRED)
@@ -32,16 +35,21 @@ endif()
 add_executable(${PROJECT_NAME} ${SRC_DIR}/$ENV{MAIN_CPP})
 
 include_directories(
+	${OPENGL_INCLUDE_DIR}
+	${GLEW_INCLUDE_DIRS}
 	${SDL2_INCLUDE_DIRS}
 	${SDL2_IMAGE_INCLUDE_DIRS}
 	${SDL2_TTF_INCLUDE_DIRS}
 	${SDL2_GFX_INCLUDE_DIRS}
-	${BOX2D_INCLUDE_DIR})
+	${BOX2D_INCLUDE_DIR}
+)
 
 add_subdirectory(${SRC_DIR})
 
 target_link_libraries(${PROJECT_NAME}
 	PUBLIC
+		OpenGL::GL
+		GLEW::GLEW
 		SDL2::Main
 		SDL2::Image
 		SDL2::GFX

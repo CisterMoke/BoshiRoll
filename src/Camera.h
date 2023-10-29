@@ -13,12 +13,13 @@ public:
 	Camera(Vec2 &origin);
 	~Camera();
 
-	void set_origin(Vec2 &origin);
-	Vec2 get_origin();
+	void set_origin(const Vec2 &origin);
+	Vec2 get_origin() const;
+	Vec2 get_pixel_origin() const;
 
-	Mat22 get_transform();
+	Mat22 get_transform() const;
 
 private:
-	Vec2 *_origin = new Vec2(0.0f, 0.0f);
+	const Vec2 *_origin = new Vec2(0.0f, 0.0f);
 };
 

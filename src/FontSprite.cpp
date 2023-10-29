@@ -53,7 +53,7 @@ void FontSprite::start_iter()
 	char c = substrings[curr_offset][curr_char];
 	texture = texture_cache.get_texture(c);
 	Vec2 dims = texture_cache.get_dim(c);
-	w = dims.x; h = dims.y;
+	px_w = dims.x; px_h = dims.y;
 	cursor = Vec2(0.0f, 0.0f);
 }
 
@@ -63,7 +63,7 @@ bool FontSprite::next_iter()
 	if (curr_offset == std::max((int) offsets.size() - 1, 0) && curr_char == std::max((int)substrings[curr_offset].size() - 1, 0)) { return false; }
 
 	// Update to transform based on tot_theta.
-	cursor.x += w;
+	cursor.x += px_w;
 	if (substrings[curr_offset].size() == 0) { curr_char = 0; }
 	else { curr_char = ++curr_char % substrings[curr_offset].size(); }
 	if (curr_char == 0)
@@ -74,40 +74,50 @@ bool FontSprite::next_iter()
 	char c = substrings[curr_offset][curr_char];
 	texture = texture_cache.get_texture(c);
 	Vec2 dims = texture_cache.get_dim(c);
-	w = dims.x; h = dims.y;
+	px_w = dims.x; px_h = dims.y;
 	return true;
 }
 
 Vec2 FontSprite::get_char_pos(bool center)
 {
-	Vec2 corr = center ? Vec2(w / 2, linespace - h / 2) : Vec2(0.0f, linespace - h);
+	Vec2 corr = center ? Vec2(px_w / 2, linespace - px_h / 2) : Vec2(0.0f, linespace - px_h);
 	return ((cursor + corr - Vec2(w_tot/2, h_tot/2)) * get_cursor_transform() + Vec2(w_tot / 2, h_tot / 2)) * Vec2(scale_x, scale_y);
 }
 
-int FontSprite::get_tot_width()
+int FontSprite::get_tot_width() const
 {
 	return w_tot * scale_x;
 }
 
 
-int FontSprite::get_tot_height()
+int FontSprite::get_tot_height() const
 {
 	return h_tot * scale_y;
 }
 
-float FontSprite::get_tot_theta()
+float FontSprite::get_tot_theta() const
 {
 	return tot_theta;
 }
 
-float FontSprite::get_theta()
+float FontSprite::get_theta() const
 {
 	return theta + tot_theta;
 }
 
-Mat22 FontSprite::get_cursor_transform()
+float FontSprite::get_tot_degrees() const
 {
-	float phi = -tot_theta * M_PI / 180.0f;
+	return -fmodf(fmodf(tot_theta * 180.0f / M_PI, 360) + 360, 360);
+}
+
+float FontSprite::get_degrees() const
+{
+	return -fmodf(fmodf((theta + tot_theta) * 180.0f / M_PI, 360) + 360, 360);
+}
+
+Mat22 FontSprite::get_cursor_transform() const
+{
+	float phi = tot_theta;
 	return rotMat(phi);
 }
 
@@ -171,8 +181,8 @@ void FontSprite::create_char_texture(char c)
 		base_surf.reset(TTF_RenderGlyph_Solid(_font.get(), c, colr), SDL_FreeSurface);
 		texture.reset(SDL_CreateTextureFromSurface(glob::g_renderer, base_surf.get()), SDL_DestroyTexture);
 	}
-	w = base_surf->w;
-	h = base_surf->h;
+	px_w = base_surf->w;
+	px_h = base_surf->h;
 }
 
 bool FontSprite::load_from_file(std::string path, int mode)
@@ -196,7 +206,7 @@ void FontSprite::populate_cache()
 			if (c < 1 && c > 127) { continue; }
 			else if (!texture_cache.contains(c)) { 
 				create_char_texture(c); 
-				texture_cache.insert(c, texture, Vec2(w, h));
+				texture_cache.insert(c, texture, Vec2(px_w, px_h));
 			}
 			linewidth += texture_cache.get_dim(c).x;
 		}
@@ -204,7 +214,7 @@ void FontSprite::populate_cache()
 	}
 	base_surf.reset();
 	texture.reset();
-	w = 0; h = 0;
+	px_w = 0; px_h = 0;
 	w_tot = tot_w;
 	h_tot = tot_h;
 }

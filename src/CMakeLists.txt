@@ -45,8 +45,10 @@ add_library(entities OBJECT
 add_library(level OBJECT
     ${CMAKE_CURRENT_SOURCE_DIR}/Camera.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Level.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/LevelFactory.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Camera.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Level.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/LevelFactory.cpp
     )
 
 add_library(rendering OBJECT

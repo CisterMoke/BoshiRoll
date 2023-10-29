@@ -28,11 +28,13 @@ public:
 	bool next_iter();
 	Vec2 get_char_pos(bool center = true);
 
-	int get_tot_width();
-	int get_tot_height();
-	float get_tot_theta();
-	float get_theta();
-	Mat22 get_cursor_transform();
+	int get_tot_width() const;
+	int get_tot_height() const;
+	float get_tot_theta() const;
+	float get_theta() const;
+	float get_tot_degrees() const;
+	float get_degrees() const;
+	Mat22 get_cursor_transform() const;
 
 protected:
 	std::string txt{};

@@ -16,58 +16,73 @@ enum class TongueState
 
 class TonguePart : public Entity
 {
-public:
-	std::unique_ptr<CircleCollider> collider;
-	
-	TonguePart(std::shared_ptr<BaseSprite> sprite, const Vec2 &pos = Vec2(0.0f, 0.0f));
-	TonguePart(std::shared_ptr<BaseSprite> sprite, float x, float y);
+	friend class Tongue;
+
+public:	
+	TonguePart(std::shared_ptr<BaseSprite> sprite, b2World &world, const Vec2 &pos = {});
 	~TonguePart() = default;
+
+	virtual b2Body *add_to(b2World &world, const Vec2 &pos);
+	float density{ 0.1f };
 };
 
 class Tongue
 {
-	Vec2 *tip = nullptr;
-	Vec2 *end = nullptr;
-	Vec2 *anchr = nullptr;
-	Vec2 *origin = nullptr;
+private:
 
-	float k = 0.005f;
-	float rest_l = 20.0f;
-	float d = 0.01f;
-	float s_mass = 0.1;
+	friend class Player;
+
+	static const int num_parts = 5;
+	static constexpr float k = 0.005f;
+	static constexpr float rest_l = 0.6f;
+	static constexpr float d = 0.01f;
+	static constexpr float s_mass = 0.1;
+	static constexpr float shoot_speed = 20.0f;
+
 	
-	float shoot_speed = 10.0f;
+	const Vec2 *const origin;
+	Vec2 prev_origin;
 	int reel = 0;
 
 	TongueState state = TongueState::IDLE;
+	std::array<b2DistanceJoint *, num_parts-1> tongue_joints{};
 
-	void correct_pos();
+	b2World *world;
+	b2Body *player_body;
+	b2Body *sensor;
+	b2DistanceJoint *player_joint = nullptr;
+
+	Tongue(b2World &world, b2Body *player_body);
+
+	b2DistanceJoint *create_joint(b2Body *body_a, b2Body *body_b);
+	void init_parts();
+	void init_joints();
+	void correct_pos(TonguePart &part);
 	void correct_angles();
+	bool check_contacts();
+	void clear_contacts();
+	void set_player_joint();
+	void clear_player_joint();
 
 	void reel_out();
 	void reel_in();
 
 public:
-	std::array<std::unique_ptr<TonguePart>, 12> parts{};
+	std::array<std::unique_ptr<TonguePart>, num_parts> parts{};
 	std::shared_ptr<BaseSprite> tongue_end;
 
-	Tongue(Vec2 *origin);
 
 	TongueState get_state();
 	TonguePart &get_tip();
 	int get_reel();
 
-	Vec2 spring_force(Vec2 &disp, Vec2 &vel, float m, bool half);
 
-	void shoot(Vec2 const &dir, Vec2 const &r_vel);
-	void release();
+	void shoot(Vec2 const &dir);
 	void anchor();
-	void anchor(Vec2 &pos);
+	void release();
 	void idle();
 	void teleport(Vec2 &v);
 	void push(Vec2 &f);
-	void apply_gravity(float g);
 	void update();
-
 };
 

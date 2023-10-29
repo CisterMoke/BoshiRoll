@@ -1,13 +1,15 @@
 #pragma once
 #include <math.h>
 #include <iostream>
+#include <box2d.h>
 #ifndef _USE_MATH_DEFINES
 #define _USE_MATH_DEFINES
 #endif
+#include "globals.h"
 #include "Mat22.h"
 struct Vec2
 {
-	float x, y;
+	float x, y; // Keep order to maintain conversion to b2Vec2
 
 	Vec2() :x(0), y(0) {};
 	Vec2(float x, float y);
@@ -20,6 +22,7 @@ struct Vec2
 	float norm2() const;
 
 	Vec2 normalize() const;
+	Vec2 to_pixels() const;
 
 	friend std::ostream &operator<<(std::ostream &os, const Vec2 &v);
 
@@ -52,4 +55,6 @@ struct Vec2
 	Vec2 &operator/=(float c);
 
 	Vec2 &operator*=(const Mat22 &mat);
+
+	operator b2Vec2&() const;
 };

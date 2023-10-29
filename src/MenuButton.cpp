@@ -16,8 +16,8 @@ BaseSprite &MenuButton::get_sprite(ButtonState state) const
 MenuButton &MenuButton::set_sprite(ButtonState state, std::shared_ptr<BaseSprite> sprite)
 {
 	sprites[state] = sprite;
-	sprites[state]->set_width(rect[2] - rect[0]);
-	sprites[state]->set_height(rect[3] - rect[1]);
+	sprites[state]->set_pixel_width(rect[2] - rect[0]);
+	sprites[state]->set_pixel_height(rect[3] - rect[1]);
 	return *this;
 }
 

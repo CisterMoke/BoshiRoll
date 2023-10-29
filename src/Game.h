@@ -6,18 +6,31 @@
 #include "Colliders.h"
 #include "Player.h"
 #include "Level.h"
+#include "LevelFactory.h"
 #include "RenderCommands.h"
 #include "Sprites.h"
 
 class Game
 {
+private:
+	static b2World create_world();
+	static const int velocity_iterations{ 6 };
+	static const int position_iterations{ 2 };
+
+	b2World world; // Must be declared before player and level.
+
+	bool paused = false;
+	bool over = false;
+
+	bool check_collisions();
+	float traction_force(float slip, float grip);
+
 public:
 	Player player;
 	Level curr_level;
 	Camera &camera;
 
 	// Physics
-	float g = 12.0f / glob::GAMETICKS;
 	float air_fric_t = 0.2f / glob::GAMETICKS;
 	float air_fric_r = 0.5f / glob::GAMETICKS;
 	float roll_fric = 0.1f / glob::GAMETICKS;
@@ -25,7 +38,8 @@ public:
 	float bounciness = 0.2f;
 
 
-	Game(Camera &camera);
+	Game(Camera &cam);
+	~Game() = default;
 
 	bool is_paused();
 	bool is_over();
@@ -37,16 +51,5 @@ public:
 
 	void tick();
 	void push_render_commands();
-
-private:
-	bool paused = false;
-	bool over = false;
-
-	bool check_collisions();
-	void apply_air_friction(Entity &e);
-	void apply_rolling_friction(float grip);
-	float calculate_grip(float Fn, float sigma = -1.0f);
-	float slip_ratio(Vec2 &dir);
-	float traction_force(float slip, float grip);
 };
 

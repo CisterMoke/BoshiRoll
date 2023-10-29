@@ -22,12 +22,12 @@ template <class Sprite>
 struct RenderSpriteCommand : public BaseRenderCommand
 {
 	Sprite *sprite;
-	Vec2 pos;
+	Vec2 px_pos;
 	SDL_Rect *clip;
 	bool center;
 
-	RenderSpriteCommand(Sprite *sprite, Camera *camera = nullptr, Vec2 pos = Vec2(0.0f, 0.0f), bool center = true, SDL_Rect *clip = NULL)
-		: sprite(sprite), pos(pos), clip(clip), center(center)
+	RenderSpriteCommand(Sprite *sprite, Camera *camera = nullptr, const Vec2 &px_pos = Vec2(0.0f, 0.0f), bool center = true, SDL_Rect *clip = NULL)
+		: sprite(sprite), px_pos(px_pos), clip(clip), center(center)
 	{
 		this->camera = camera;
 	}
@@ -44,7 +44,7 @@ protected:
 struct RenderParallaxCommand : public RenderSpriteCommand<BaseSprite>
 {
 	float depth;
-	RenderParallaxCommand(BaseSprite *sprite, Camera *camera = nullptr, Vec2 pos = Vec2(0.0f, 0.0f), float depth = 1.0f, bool center = false);
+	RenderParallaxCommand(BaseSprite *sprite, Camera *camera = nullptr, const Vec2 &pos = Vec2(0.0f, 0.0f), float depth = 1.0f, bool center = false);
 	virtual ~RenderParallaxCommand() {};
 	virtual void execute(SDL_Renderer *renderer);
 };

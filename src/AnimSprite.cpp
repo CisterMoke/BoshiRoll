@@ -15,11 +15,11 @@ bool AnimSprite::load_from_file(std::string path,frame_dim_t frame_dim, int mode
 {
 	if (!load_from_file(path, mode)) { return false; }
 	this->frame_dim = frame_dim;
-	w = frame_dim[0];
-	h = frame_dim[1];
+	px_w = frame_dim[0];
+	px_h = frame_dim[1];
 
-	int horizontal = base_surf->w / w;
-	int vertical = base_surf->h / h;
+	int horizontal = base_surf->w / px_w;
+	int vertical = base_surf->h / px_h;
 	num_frames = horizontal * vertical;
 	frame_rects.reserve(num_frames);
 
@@ -27,8 +27,8 @@ bool AnimSprite::load_from_file(std::string path,frame_dim_t frame_dim, int mode
 	{
 		for (int j = 0; j < horizontal; j++)
 		{
-			int fx = j * w;
-			int fy = i * h;
+			int fx = j * px_w;
+			int fy = i * px_h;
 			int fn = i * horizontal + j;
 			frame_rects.push_back({ fx, fy });
 		}

@@ -1,15 +1,36 @@
 #include "Player.h"
 #include "Player.h"
 
+b2Body *Player::add_to(b2World &world, const Vec2 &pos)
+{
+	b2BodyDef bodydef;
+	bodydef.type = b2_dynamicBody;
+	bodydef.position.Set(pos.x, pos.y);
 
-Player::Player(std::shared_ptr<BaseSprite> sprite, const Vec2 &pos)
-	: Entity(sprite, pos), collider(new CircleCollider(std::shared_ptr<Vec2>(&this->pos, [](Vec2*) {}), sprite->get_width() / 2)), tongue(new Tongue(&this->pos)){}
+	
+	b2CircleShape collider;
+	collider.m_radius = sprite->get_width() / 2.0f;
 
-Player::Player(std::shared_ptr<BaseSprite> sprite, float x, float y)
-	: Player(sprite, Vec2(0.0f, 0.0f)) {}
+	b2FixtureDef fixdef;
+	fixdef.shape = &collider;
+	fixdef.density = density;
+	fixdef.friction = 1.0f;
+	fixdef.restitution = 0.3f;
+	fixdef.filter.groupIndex = glob::PLAYER_GROUP;
+	
+	body = world.CreateBody(&bodydef);
+	body->CreateFixture(&fixdef);
+	mass = body->GetMass();
+	inertia = body->GetInertia();
+	return body;
+}
 
-Player::Player(const Player &other)
-	: Player(other.sprite, other.pos) {}
+Player::Player(std::shared_ptr<BaseSprite> sprite, b2World &world, const Vec2 &pos)
+	: Entity(sprite, world, pos)
+{
+	add_to(world, pos);
+	tongue = std::unique_ptr<Tongue>(new Tongue(world, body));
+}
 
 Tongue &Player::get_tongue() { return *tongue; }
 
@@ -19,9 +40,9 @@ void Player::do_action(SDL_Event &event)
 	{
 		if (tongue->get_state() == TongueState::IDLE)
 		{
-			Vec2 dir = Vec2(event.button.x - glob::SCREEN_WIDTH / 2, event.button.y - glob::SCREEN_HEIGHT / 2);
+			Vec2 dir = Vec2(event.button.x - glob::SCREEN_WIDTH / 2, -event.button.y + glob::SCREEN_HEIGHT / 2);
 			if (dir == Vec2(0.0f, 0.0f)) { dir = Vec2(1.0f, 0.0f); }
-			tongue->shoot(dir, vel);
+			tongue->shoot(dir);
 		}
 	}
 	else if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_RIGHT)
@@ -43,11 +64,11 @@ void Player::do_action(SDL_Event &event)
 			break;
 
 		case SDLK_UP:
-			t_force += Vec2(0.0f, -5.0f) * mass;
+			push(Vec2(0.0f, 5.0f) * mass);
 			break;
 
 		case SDLK_DOWN:
-			t_force += Vec2(0.0f, 5.0f) * mass;
+			body->SetAngularVelocity(0.0f);
 			break;
 
 		case SDLK_LEFT:
@@ -76,19 +97,13 @@ void Player::update()
 		switch (held_key)
 		{
 		case SDLK_LEFT:
-			r_force -= 0.2f * mass;
+			spin(0.5f * inertia);
 			break;
 
 		case SDLK_RIGHT:
-			r_force += 0.2f * mass;
+			spin(-0.5f * inertia);
 			break;
 		}
-	}
-	if (tongue->get_state() == TongueState::ANCHORED)
-	{
-		Vec2 disp = pos - tongue->parts[tongue->get_reel()]->pos;
-		Vec2 F = tongue->spring_force(disp, vel, mass, 0);
-		push(F);
 	}
 	Entity::update();
 	tongue->update();

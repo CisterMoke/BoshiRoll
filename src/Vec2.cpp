@@ -27,7 +27,15 @@ float Vec2::dist(const Vec2 &v) const
 float Vec2::norm() const { return sqrtf(x * x + y * y); }
 float Vec2::norm2() const { return x * x + y * y; }
 
-Vec2 Vec2::normalize() const { return *this / this->norm(); }
+Vec2 Vec2::normalize() const
+{
+	if (x == 0.0f && y == 0.0f)
+	{
+		return *this;
+	}
+	return *this / norm();
+}
+Vec2 Vec2::to_pixels() const { return *this * (Vec2(1.0f, -1.0f) * glob::PX_PER_M); }
 
 std::ostream &operator<<(std::ostream &os, const Vec2 &v)
 {
@@ -114,4 +122,11 @@ Vec2 &Vec2::operator*=(const Mat22 &mat)
 	x = a;
 	y = b;
 	return *this;
+}
+
+Vec2::operator b2Vec2 &() const
+{
+	// This feels very hacky and a terrible idea but who cares right.
+	b2Vec2 *bp = (b2Vec2 *)this;
+	return *bp;
 }
