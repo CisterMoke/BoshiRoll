@@ -1,0 +1,43 @@
+[gd_scene load_steps=7 format=3 uid="uid://cv32p74ct4exp"]
+
+[ext_resource type="Script" path="res://boshi.gd" id="1_npb60"]
+[ext_resource type="Texture2D" uid="uid://bwo73sxobpmm1" path="res://resources/images/boshi.png" id="2_4x5hm"]
+[ext_resource type="Script" path="res://boshicam.gd" id="3_kboev"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_7t3fp"]
+bounce = 0.21
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_3v653"]
+radius = 100.0
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_jxuc8"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_4x5hm")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[node name="Boshi" type="RigidBody2D"]
+physics_material_override = SubResource("PhysicsMaterial_7t3fp")
+max_contacts_reported = 5
+contact_monitor = true
+script = ExtResource("1_npb60")
+metadata/_edit_group_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_3v653")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+scale = Vector2(0.22, 0.22)
+sprite_frames = SubResource("SpriteFrames_jxuc8")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(-9.09495e-13, -1.52588e-05)
+rotation = 3.14159
+offset = Vector2(0, -50)
+zoom = Vector2(0.8, 0.8)
+script = ExtResource("3_kboev")

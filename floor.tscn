@@ -1,0 +1,31 @@
+[gd_scene load_steps=5 format=3 uid="uid://cfwdq3l316jdw"]
+
+[ext_resource type="Texture2D" uid="uid://cpkhjq2cj7uvg" path="res://resources/images/foreground.png" id="1_67aos"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_w5lyl"]
+friction = 5.0
+rough = true
+
+[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_prb6q"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_to82q"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_67aos")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[node name="Floor" type="StaticBody2D"]
+physics_material_override = SubResource("PhysicsMaterial_w5lyl")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("WorldBoundaryShape2D_prb6q")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+texture_repeat = 2
+position = Vector2(0, -128)
+sprite_frames = SubResource("SpriteFrames_to82q")
